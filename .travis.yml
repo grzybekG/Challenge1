@@ -7,6 +7,9 @@ env:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
    - secure: "acfmMB/hwKmd/0du8TIUhwReCNjevpOoqGu5FJs9glaZSn7gOJEzIIaiv/MIWj26d9r4uWF56Cgl5K7DGIWvT8zebQZpLK+shYf2CwuTQaMxqqtK/vCjJuV6JRgQXdlJc/UzE5DICEQMaR8LtsBUNNxJ13UbXl+YTSurkGh3pOEfpBIk8vvJ1bNUJDppBso+mCjJKLEPlZOB3pw22LReY8GGxa55FCb7p8HMjh9htPITg+olYjkjs+8R7ZKBrIN6A/hjU7PpBzzsRC7wBqnBNu+2r+LST/x1LX+Mv0pKCBolB1dmSR7cBnmA7ALRbCluLbmi6UgBAFvtdhCodsM2L/9ATgq1j990u01XphwHlZtyk0+V+JYxh8EXPEkhkCgYachtQfATltg4yMHRLgVvLTLNaUDz7f84auYSMdJL1JO+emngog8RrqWjC3eZBL/Rcb0p+dowJyaUuciOgQt6bp0b8wckqQ9qGSARLTYGDRfv+xmc27MKFM027P526TQfqpIQe1YBgprQEsuCfb8Td3zNrXmT6lDojgcIs+OAzFsDF5hjEIFEUKxlEVGS/14kOpwIDikyt9zdO8fgAznBXnCn0IkOkScKsyJJ0b9uKXIz1UHFUCwKFxN5+IyuMdYjw9G4UNHsEkoLooYkQVEWMNOqFoAP7bJoDjrvFbplvCo="
+before_install:
+ - chmod +x mvn
+ - chmod +x .mvnc
 
 addons:
   coverity_scan:
