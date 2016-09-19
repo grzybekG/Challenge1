@@ -5,8 +5,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.util.ResourceUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Iterator;
 
@@ -17,11 +19,11 @@ import static org.hamcrest.core.Is.is;
  */
 public class FileServiceImplTest {
 
-    public static  String TEST_RESOURCE_PATH=null;
+    public static String TEST_RESOURCE_PATH = "src/test/resources/ParentFolder";
 
-    @Before
-    public void setUp(){
-         TEST_RESOURCE_PATH = FileServiceImplTest.class.getProtectionDomain().getCodeSource().getLocation().getPath()+ "ParentFolder";
+    @BeforeClass
+    public static void  setUp() throws FileNotFoundException {
+        System.out.print("PATH FOUND getLocation" + FileServiceImplTest.class.getProtectionDomain().getCodeSource().getLocation());
     }
 
     FileService fileService = new FileServiceImpl();
@@ -29,7 +31,7 @@ public class FileServiceImplTest {
     @Test
     public void shouldReturnOneFolderElementIterator() {
 
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "//SubFolder1//EmptyFolder");
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "/SubFolder1//EmptyFolder");
         Assert.assertNotNull(fileIterator);
         Assert.assertTrue(fileIterator.hasNext());
 
@@ -68,14 +70,14 @@ public class FileServiceImplTest {
 
     @Test
     public void shouldIgnoreFilesInFolder() {
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH+"/SubFolder2");
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "/SubFolder2");
         Assert.assertNotNull(fileIterator);
         directoryOnlyCheck(fileIterator);
     }
 
     @Test
     public void shouldIgnoreFileInNestedFolders() {
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH+"/SubFolder1");
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "/SubFolder1");
         Assert.assertNotNull(fileIterator);
         directoryOnlyCheck(fileIterator);
     }
