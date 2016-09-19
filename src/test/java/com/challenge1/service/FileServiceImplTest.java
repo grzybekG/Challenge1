@@ -29,9 +29,28 @@ public class FileServiceImplTest {
     FileService fileService = new FileServiceImpl();
 
     @Test
+    public void getCurrentFileStructure() {
+
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(".");
+        StringBuilder sBuilder = new StringBuilder();
+        while (fileIterator.hasNext()) {
+            File next = fileIterator.next();
+            sBuilder.append("Abs Path: " + next.getAbsolutePath());
+            sBuilder.append(System.lineSeparator());
+            sBuilder.append("Path: " + next.getPath());
+            sBuilder.append(System.lineSeparator());
+
+        }
+
+        System.out.print("TESTPRINT " +sBuilder.toString());
+
+        directoryOnlyCheck(fileIterator);
+    }
+
+    @Test
     public void shouldReturnOneFolderElementIterator() {
 
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "/SubFolder1//EmptyFolder");
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "/SubFolder1/EmptyFolder");
         Assert.assertNotNull(fileIterator);
         Assert.assertTrue(fileIterator.hasNext());
 
