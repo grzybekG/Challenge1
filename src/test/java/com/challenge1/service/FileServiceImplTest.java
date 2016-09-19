@@ -2,9 +2,12 @@ package com.challenge1.service;
 
 import com.challenge1.service.api.FileService;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Iterator;
 
 import static org.hamcrest.core.Is.is;
@@ -14,13 +17,19 @@ import static org.hamcrest.core.Is.is;
  */
 public class FileServiceImplTest {
 
-    public static final String TEST_RESOURCE_PATH = ".\\src\\test\\resources\\ParentFolder";
+    public static  String TEST_RESOURCE_PATH=null;
+
+    @Before
+    public void setUp(){
+         TEST_RESOURCE_PATH = FileServiceImplTest.class.getProtectionDomain().getCodeSource().getLocation().getPath()+ "ParentFolder";
+    }
 
     FileService fileService = new FileServiceImpl();
 
     @Test
     public void shouldReturnOneFolderElementIterator() {
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "\\SubFolder1\\EmptyFolder");
+
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "//SubFolder1//EmptyFolder");
         Assert.assertNotNull(fileIterator);
         Assert.assertTrue(fileIterator.hasNext());
 
@@ -59,14 +68,14 @@ public class FileServiceImplTest {
 
     @Test
     public void shouldIgnoreFilesInFolder() {
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH+"\\SubFolder2");
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH+"/SubFolder2");
         Assert.assertNotNull(fileIterator);
         directoryOnlyCheck(fileIterator);
     }
 
     @Test
     public void shouldIgnoreFileInNestedFolders() {
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH+"\\SubFolder1");
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH+"/SubFolder1");
         Assert.assertNotNull(fileIterator);
         directoryOnlyCheck(fileIterator);
     }
