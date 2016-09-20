@@ -27,7 +27,7 @@ public class FileServiceImplTest {
 
     @BeforeClass
     public static void setup() throws IOException {
-        new File(".\\ParentFolder\\SubFolder1\\EmptyFolder").mkdirs();
+        boolean mkdirs = new File(".\\ParentFolder\\SubFolder1\\EmptyFolder").mkdirs();
         new File(".\\ParentFolder\\SubFolder2\\SubSubFolderA").mkdirs();
         new File(".\\ParentFolder\\SubFolder2\\SubSubFolderB").mkdirs();
         new File(".\\ParentFolder\\SubFolder2\\SubSubFolderB\\NestedOne").mkdirs();
@@ -38,6 +38,9 @@ public class FileServiceImplTest {
         Files.write(someFile, data);
         Files.write(someSubFile1, data);
         Files.write(someSubFile2, data);
+
+        System.out.print("Folder has been created :[" +mkdirs +"]"+System.lineSeparator());
+        System.out.print("Path to parent folder is A: [" +new File("ParentFolder").getPath()) ;
     }
     @AfterClass
     public static void destroy() throws Exception{
