@@ -6,6 +6,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +21,7 @@ import static org.hamcrest.core.Is.is;
 /**
  * Created by mlgy on 2016-09-19.
  */
+@RunWith(SpringJUnit4ClassRunner.class)
 public class FileServiceImplTest {
 
     public static String TEST_RESOURCE_PATH = ".\\ParentFolder";
