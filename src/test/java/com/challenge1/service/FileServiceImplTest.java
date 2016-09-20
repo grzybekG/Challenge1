@@ -24,7 +24,7 @@ import static org.hamcrest.core.Is.is;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileServiceImplTest {
 
-    public static String TEST_RESOURCE_PATH = ".\\ParentFolder";
+    public static String TEST_RESOURCE_PATH = "ParentFolder";
 
     FileService fileService = new FileServiceImpl();
 
@@ -34,25 +34,43 @@ public class FileServiceImplTest {
         new File(".\\ParentFolder\\SubFolder2\\SubSubFolderA").mkdirs();
         new File(".\\ParentFolder\\SubFolder2\\SubSubFolderB").mkdirs();
         new File(".\\ParentFolder\\SubFolder2\\SubSubFolderB\\NestedOne").mkdirs();
-        byte data[] = {1,2};
-        Path someFile = Paths.get(TEST_RESOURCE_PATH +"\\someFile");
-        Path someSubFile1 = Paths.get(TEST_RESOURCE_PATH +"\\SubFolder1\\someSubFile1");
-        Path someSubFile2 = Paths.get(TEST_RESOURCE_PATH +"\\SubFolder2\\someSubFile2");
+        byte data[] = {1, 2};
+        Path someFile = Paths.get(TEST_RESOURCE_PATH + "\\someFile");
+        Path someSubFile1 = Paths.get(TEST_RESOURCE_PATH + "\\SubFolder1\\someSubFile1");
+        Path someSubFile2 = Paths.get(TEST_RESOURCE_PATH + "\\SubFolder2\\someSubFile2");
         Files.write(someFile, data);
         Files.write(someSubFile1, data);
         Files.write(someSubFile2, data);
 
-        System.out.print("Folder has been created :[" +mkdirs +"]"+System.lineSeparator());
-        System.out.print("Path to parent folder is A: [" +new File("ParentFolder").getPath()) ;
+        System.out.print("Folder has been created :[" + mkdirs + "]" + System.lineSeparator());
+        System.out.print("Path to parent folder is A: [" + new File("ParentFolder").getPath());
     }
+
     @AfterClass
-    public static void destroy() throws Exception{
+    public static void destroy() throws Exception {
+        StringBuilder sBuilder = new StringBuilder();
         FileUtils.deleteDirectory(new File(TEST_RESOURCE_PATH));
-
-
     }
+
     @Test
-    public void shouldReturnOneFolderElementIterator() throws Exception{
+    public void printStr() {
+        StringBuilder sBuilder = new StringBuilder();
+        Iterator<File> fileIterator = fileService.collectFoldersForPath("ParentFolder");
+        while (fileIterator.hasNext()) {
+            File next = fileIterator.next();
+            sBuilder.append("Name: " + next.getName());
+            sBuilder.append("Abs Path: " + next.getAbsolutePath());
+            sBuilder.append("Is File: " + next.isFile());
+            sBuilder.append("Is Directory: " + next.isDirectory());
+            sBuilder.append(System.lineSeparator());
+
+        }
+
+        System.out.print("PARENT STR:" +sBuilder.toString());
+    }
+
+    @Test
+    public void shouldReturnOneFolderElementIterator() throws Exception {
         Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "\\SubFolder1\\EmptyFolder");
         Assert.assertNotNull(fileIterator);
         Assert.assertTrue(fileIterator.hasNext());
@@ -62,7 +80,7 @@ public class FileServiceImplTest {
 
 
     @Test
-    public void shouldReturnEmptyIteratorForNotExistingPath() throws Exception{
+    public void shouldReturnEmptyIteratorForNotExistingPath() throws Exception {
         Iterator<File> fileIterator = fileService.collectFoldersForPath(null);
         Assert.assertNotNull(fileIterator);
         Assert.assertFalse(fileIterator.hasNext());
@@ -70,7 +88,7 @@ public class FileServiceImplTest {
     }
 
     @Test
-    public void shouldReturnEmptyIteratorForBlankPath() throws Exception{
+    public void shouldReturnEmptyIteratorForBlankPath() throws Exception {
         Iterator<File> fileIterator = fileService.collectFoldersForPath("");
         Assert.assertNotNull(fileIterator);
         Assert.assertFalse(fileIterator.hasNext());
@@ -83,35 +101,35 @@ public class FileServiceImplTest {
     }
 
     @Test
-    public void shouldGetNestedFoldersWithNoFiles() throws Exception{
+    public void shouldGetNestedFoldersWithNoFiles() throws Exception {
         Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH);
         Assert.assertNotNull(fileIterator);
-        directoryOnlyCheck(fileIterator,7);
+        directoryOnlyCheck(fileIterator, 7);
 
     }
 
     @Test
-    public void shouldIgnoreFilesInFolder() throws Exception{
+    public void shouldIgnoreFilesInFolder() throws Exception {
         Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "/SubFolder2");
         Assert.assertNotNull(fileIterator);
-        directoryOnlyCheck(fileIterator,4);
+        directoryOnlyCheck(fileIterator, 4);
     }
 
     @Test
-    public void shouldIgnoreFileInNestedFolders() throws Exception{
+    public void shouldIgnoreFileInNestedFolders() throws Exception {
         Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "/SubFolder1");
         Assert.assertNotNull(fileIterator);
-        directoryOnlyCheck(fileIterator,2);
+        directoryOnlyCheck(fileIterator, 2);
     }
 
 
-    private void directoryOnlyCheck(Iterator<File> fileIterator,int expectedSize) {
-        int count=0;
+    private void directoryOnlyCheck(Iterator<File> fileIterator, int expectedSize) {
+        int count = 0;
         while (fileIterator.hasNext()) {
             File next = fileIterator.next();
             Assert.assertThat(next.isDirectory(), is(true));
             count++;
         }
-        Assert.assertThat(count,is(expectedSize));
+        Assert.assertThat(count, is(expectedSize));
     }
 }
