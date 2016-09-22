@@ -1,8 +1,6 @@
 package com.challenge1.service;
 
 import com.challenge1.service.api.FileService;
-import org.apache.commons.io.FileUtils;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -10,14 +8,7 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import static org.hamcrest.core.Is.is;
 
@@ -27,13 +18,14 @@ import static org.hamcrest.core.Is.is;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileServiceImplTest {
 
-    public static String TEST_RESOURCE_PATH = "src\\test\\resources\\ParentFolder";
+
+    public static String TEST_RESOURCE_PATH = "src/test/resources/ParentFolder";
 
     FileService fileService = new FileServiceImpl();
 
     @BeforeClass
     public static void setUp(){
-        TEST_RESOURCE_PATH = new File(".").getAbsolutePath() + "\\" + TEST_RESOURCE_PATH;
+        TEST_RESOURCE_PATH = new File(".").getAbsolutePath() + "/" + TEST_RESOURCE_PATH;
         System.out.print("TEST RESOURCE PATH: [" +TEST_RESOURCE_PATH +"].");
     }
 
@@ -41,7 +33,7 @@ public class FileServiceImplTest {
 
     @Test
     public void shouldReturnOneFolderElementIterator() throws Exception {
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "\\SubFolder1\\EmptyFolder");
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "/SubFolder1/EmptyFolder");
         Assert.assertNotNull(fileIterator);
         Assert.assertTrue(fileIterator.hasNext());
 
@@ -67,7 +59,7 @@ public class FileServiceImplTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionForInvalidPath() {
-        fileService.collectFoldersForPath(".\\xyz\\someRandompath");
+        fileService.collectFoldersForPath("./xyz/someRandompath");
     }
 
     @Test
@@ -80,14 +72,14 @@ public class FileServiceImplTest {
 
     @Test
     public void shouldIgnoreFilesInFolder() throws Exception {
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "\\SubFolder2");
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "/SubFolder2");
         Assert.assertNotNull(fileIterator);
         directoryOnlyCheck(fileIterator, 2);
     }
 
     @Test
     public void shouldIgnoreFileInNestedFolders() throws Exception {
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "\\SubFolder1");
+        Iterator<File> fileIterator = fileService.collectFoldersForPath(TEST_RESOURCE_PATH + "/SubFolder1");
         Assert.assertNotNull(fileIterator);
         directoryOnlyCheck(fileIterator, 2);
     }
