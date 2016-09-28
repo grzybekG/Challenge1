@@ -2,34 +2,28 @@ package com.challenge1.web;
 
 import com.challenge1.service.api.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
 
 @RestController
 public class DirectoryController {
     @Autowired
     private FileService fileService;
 
-    @RequestMapping(path = "/test", method = RequestMethod.GET)
-    public String testController() {
-        StringBuilder sBuilder = new StringBuilder();
-        Iterator<File> fileIterator = fileService.collectFoldersForPath(".");
-        while (fileIterator.hasNext()) {
-            File next = fileIterator.next();
-            sBuilder.append("Name: " + next.getName());
-            sBuilder.append("Abs Path: " + next.getAbsolutePath());
-            sBuilder.append("Is File: " + next.isFile());
-            sBuilder.append("Is Directory: " + next.isDirectory());
-            sBuilder.append(System.lineSeparator());
-
-        }
-
-        return sBuilder.toString();
-
+    @RequestMapping(path = "/other", method = RequestMethod.GET)
+    public String testController(@RequestParam String param) throws IOException {
+        return fileService.withMapSolution(Paths.get(param));
     }
+
 }
 
