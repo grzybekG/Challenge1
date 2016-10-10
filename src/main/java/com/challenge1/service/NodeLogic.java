@@ -1,7 +1,6 @@
 package com.challenge1.service;
 
-import com.challenge1.service.api.Branch;
-import com.challenge1.service.api.Leaf;
+import com.challenge1.service.api.Node;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -11,18 +10,26 @@ import java.util.Stack;
 /**
  * Created by mlgy on 2016-09-28.
  */
-public class BranchLogic {
-    static Stack<Branch> stack = new Stack<>();
+public class NodeLogic {
+    static Stack<Iterator<Node>> nodeToProcess = new Stack<>();
+
+    private static Iterator<Node> getChildrenIterator(Node root) {
+        Iterator<Node> iterator = root.iterator();
+        while (iterator.hasNext()) {
+            nodeToProcess.push(iterator.next().iterator());
+        }
+
+        while (!nodeToProcess.isEmpty()){
+            Iterator<Node> peek = nodeToProcess.peek();
+
+        }
 
 
-    public static Iterator<Branch> gatherBranchIterator(Branch root) {
-        goForNestedNodes(root);
-
-        return stack.iterator();
+        return null;
     }
 
-    private static void goForNestedNodes(Branch branch) {
-        Iterator<Branch> iterator = branch.iterator();
+    private static void goForNestedNodes(Node node) {
+        Iterator<Node> iterator = node.iterator();
         while (iterator.hasNext()) {
             iterator.forEachRemaining(anotherBranch -> addToResult(anotherBranch));
         }
@@ -30,13 +37,13 @@ public class BranchLogic {
 
     }
 
-    private static void addToResult(Branch branch) {
-        Iterator<Branch> iterator = branch.iterator();
-        stack.push(branch);
+    private static void addToResult(Node node) {
+        Iterator<Node> iterator = node.iterator();
+        stack.push(node);
         while (iterator.hasNext()) {
-            Branch nestedBranch = iterator.next();
-            stack.push(nestedBranch);
-            goForNestedNodes(nestedBranch);
+            Node nestedNode = iterator.next();
+            stack.push(nestedNode);
+            goForNestedNodes(nestedNode);
 
         }
 
