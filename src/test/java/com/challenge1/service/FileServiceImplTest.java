@@ -10,6 +10,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileServiceImplTest {
+
     public static String TEST_RESOURCE_PATH = "src/test/resources/ParentFolder";
     private FileService fileService = new FileServiceImpl();
     @Test

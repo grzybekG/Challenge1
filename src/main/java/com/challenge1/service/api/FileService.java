@@ -10,7 +10,6 @@ import java.util.List;
 
 public interface FileService {
 
-    Iterator<Leaf> convertTargetToIterable(String from);
 
     String withMapSolution(Path path);
 

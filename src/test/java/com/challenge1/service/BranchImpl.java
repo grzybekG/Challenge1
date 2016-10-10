@@ -8,15 +8,16 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class BranchImpl implements Branch {
-    List<Leaf> leafs;
+public class BranchImpl implements Branch{
+    List<Branch> branches;
 
     @Override
-    public Iterator<Leaf> iterator() {
-        return leafs.iterator();
+    public Iterator<Branch> iterator() {
+        return branches.iterator();
     }
 
-    public BranchImpl(Leaf... leafs) {
-        this.leafs = Arrays.asList(leafs);
+    public BranchImpl(Branch... branches) {
+        this.branches = Arrays.asList(branches);
     }
+
 }

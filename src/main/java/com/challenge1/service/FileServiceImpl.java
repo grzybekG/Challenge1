@@ -1,11 +1,8 @@
 package com.challenge1.service;
 
-import com.challenge1.service.api.Branch;
 import com.challenge1.service.api.FileService;
-import com.challenge1.service.api.Leaf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -17,22 +14,8 @@ import java.util.*;
 @Service
 public class FileServiceImpl implements FileService {
     private static final String LINE_SEPARATOR = System.lineSeparator();
-
     Logger LOG = LoggerFactory.getLogger(this.getClass());
-
     Map<String, List<String>> resultMap = new HashMap<>();
-
-
-    @Override
-    public Iterator<Leaf> convertTargetToIterable(String path) {
-
-        return null ;
-    }
-
-
-
-
-
 
     //TODO remove in future  ---------------IGNORE -----------------------
     public String withMapSolution(Path path) {
@@ -54,7 +37,6 @@ public class FileServiceImpl implements FileService {
             Files.newDirectoryStream(path).forEach(element -> addResultToMap(element));
         } catch (IOException e) {
 
-            //FIXME
         }
     }
 
