@@ -4,6 +4,8 @@ import com.challenge1.service.api.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.DirectoryStream;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Stack;
 
@@ -20,11 +22,6 @@ public class NodeIterator implements Iterator<Node> {
         }
     }
 
-    public NodeIterator(Node node) {
-        nodeStack.push(node);
-    }
-
-
     @Override
     public boolean hasNext() {
         return !nodeStack.empty();
@@ -40,7 +37,7 @@ public class NodeIterator implements Iterator<Node> {
             throw new IndexOutOfBoundsException("no next element.");
         }
         Node peek = nodeStack.peek();
-        Iterator<Node> tmpIterator = peek.iterator();
+        Iterator<Node> tmpIterator = peek.getChildren();
         if (tmpIterator.hasNext()) {
             while (tmpIterator.hasNext()) {
                 nodeStack.push(tmpIterator.next());

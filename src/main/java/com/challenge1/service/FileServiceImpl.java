@@ -1,6 +1,7 @@
 package com.challenge1.service;
 
 import com.challenge1.service.api.FileService;
+import com.challenge1.service.api.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,14 @@ public class FileServiceImpl implements FileService {
     Logger LOG = LoggerFactory.getLogger(this.getClass());
     Map<String, List<String>> resultMap = new HashMap<>();
 
-    //TODO remove in future  ---------------IGNORE -----------------------
-    public String withMapSolution(Path path) {
+
+    @Override
+    public Iterator<Node> getIteratorForPath(Path path) {
+        FileNodeImpl fileNode = new FileNodeImpl(path);
+        return null;
+    }
+
+    public String withMapSolution(Path path) throws IOException {
         innerMapCollect(path);
         StringBuilder bb = new StringBuilder();
         resultMap.forEach((s, strings) -> mapHandler(s, strings, bb));
@@ -58,6 +65,4 @@ public class FileServiceImpl implements FileService {
 
         }
     }
-
-
 }

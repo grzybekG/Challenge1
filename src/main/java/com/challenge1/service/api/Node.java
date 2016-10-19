@@ -6,7 +6,7 @@ import java.util.Iterator;
 /**
  *
  */
-public interface Node extends Iterable<Node> {
-    Iterator<Node> getChildren();
-    String getData();
+public interface  Node<E> {
+    Iterator<Node<E>> getChildren();
+    E getData();
 }

@@ -1,10 +1,7 @@
 package com.challenge1.service;
 
 import com.challenge1.service.api.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -18,11 +15,6 @@ public class NodeImpl implements Node {
     public NodeImpl(String path, Node... root) {
         this.path = path;
         nodeIterator = new NodeIterator(root);
-    }
-
-    @Override
-    public Iterator<Node> iterator() {
-        return nodeIterator;
     }
 
     @Override

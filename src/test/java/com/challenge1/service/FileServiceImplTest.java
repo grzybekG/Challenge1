@@ -14,7 +14,7 @@ public class FileServiceImplTest {
     public static String TEST_RESOURCE_PATH = "src/test/resources/ParentFolder";
     private FileService fileService = new FileServiceImpl();
     @Test
-    public void convertTargetToIterableTest(){
+    public void shouldReturnAllLeafs(){
 
 
 }
