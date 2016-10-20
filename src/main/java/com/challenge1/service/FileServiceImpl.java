@@ -17,6 +17,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Iterable<Node> getIteratorForPath(Path path) {
+        LOG.info("Getting iterator for path {}.",path);
         Iterable<Node> nodeIterator = NodeLogic.getNodeIterator(new FileNodeImpl(path));
         return nodeIterator;
     }

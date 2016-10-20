@@ -15,48 +15,56 @@ import java.util.Stack;
  */
 public class NodeIterator implements Iterator<Node> {
     Logger LOG = LoggerFactory.getLogger(this.getClass());
-    private Stack<Node> nodeStack = new Stack<>();
-    private Iterator<Node> tmpIterator;
+    private Stack<Iterator<Node>> nodeStack = new Stack<>();
+    //private Iterator<Node> tmpIterator;
 
-    public NodeIterator(List<Node> nodes ) {
-        for (Node node : nodes) {
-            nodeStack.push(node);
-        }
+    public NodeIterator(List<Node> nodes) {
+        nodeStack.push(nodes.iterator());
     }
 
     @Override
     public boolean hasNext() {
-        return !nodeStack.empty();
-    }
 
-    /**
-     * return next node when there is no node
-     * throw IndexOutOfBoundsException when no next element
-     */
-    @Override
-    public Node next() {
-        if (!hasNext()) {
-            throw new IndexOutOfBoundsException("no next element.");
-        }
-        if ((tmpIterator == null || !tmpIterator.hasNext()) && !nodeStack.empty()) {
-            tmpIterator = nodeStack.peek().iterator();
-        }
-        if (tmpIterator.hasNext()) {
-            while (tmpIterator.hasNext()) {
-               nodeStack.push(tmpIterator.next());
+        for (Iterator<Node> single : nodeStack) {
+            if (single.hasNext()) {
+                return true;
             }
-        } else {
-            Node pop = nodeStack.pop();
-            LOG.info("Stack size is {}, obj returned {}", nodeStack.size(), pop);
 
-            return pop;
         }
-        return next();
+        return false;
     }
 
-    @Override
-    public void remove() {
-        throw new UnsupportedOperationException("Cannot perform this operation");
-    }
+        /**
+         * return next node when there is no node
+         * throw IndexOutOfBoundsException when no next element
+         */
+        @Override
+        public Node next () {
+            if (!hasNext()) {
+                throw new IndexOutOfBoundsException("no next element.");
+            }
 
-}
+            Iterator<Node> peek = nodeStack.peek();
+            if (peek.hasNext()) {
+                Node next = peek.next();
+                if (next != null && next.getChildren() != null) {
+                    Iterator<Node> childrenIterator = next.iterator();
+                    if (childrenIterator.hasNext()) {
+                        nodeStack.push(childrenIterator);
+                    }
+                }
+                return next;
+
+            } else {
+                nodeStack.remove(peek);
+
+                return next();
+            }
+        }
+
+        @Override
+        public void remove () {
+            throw new UnsupportedOperationException("Cannot perform this operation");
+        }
+
+    }
