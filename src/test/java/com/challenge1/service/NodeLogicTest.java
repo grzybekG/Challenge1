@@ -22,7 +22,7 @@ public class NodeLogicTest {
     @Test
     public void shouldHaveNoChild() {
         Node root = new NodeImpl("root");
-        Iterator<Node> nodeIterator = root.getChildren();
+        Iterator<Node> nodeIterator = root.getChildren().iterator();
 
         assertFalse(nodeIterator.hasNext());
 
@@ -36,7 +36,7 @@ public class NodeLogicTest {
         Node root = new NodeImpl("path", one, two, three);
 
         // Iterator<Node> iterator = root.iterator();
-        Iterator<Node> nodeIterator = NodeLogic.getNodeIterator(root);
+        Iterator<Node> nodeIterator = NodeLogic.getNodeIterator(root).iterator();
 
         Assert.assertThat(ImmutableList.copyOf(nodeIterator), containsInAnyOrder(one, two, three));
     }
@@ -47,7 +47,7 @@ public class NodeLogicTest {
         Node leaf1 = new NodeImpl("leaf1");
         Node leaf2 = new NodeImpl("leaf2", leaf1);
         Node root = new NodeImpl("root", leaf2);
-        Iterator<Node> iterator = NodeLogic.getNodeIterator(root);
+        Iterator<Node> iterator = NodeLogic.getNodeIterator(root).iterator();
 
         ImmutableList<Node> nodes = ImmutableList.copyOf(iterator);
         Assert.assertThat(nodes, containsInAnyOrder(leaf1, leaf2));
@@ -66,7 +66,8 @@ public class NodeLogicTest {
         Node leaf6 = new NodeImpl("leaf6", leaf5);
         Node root = new NodeImpl("root", leaf4, leaf6);
         //when
-        Iterator<Node> iterator = NodeLogic.getNodeIterator(root);
+        Iterable<Node> nodeIterator = NodeLogic.getNodeIterator(root);
+        Iterator<Node> iterator = nodeIterator.iterator();
         //then
         ImmutableList<Node> nodes = ImmutableList.copyOf(iterator);
         Assert.assertThat(nodes, containsInAnyOrder(leaf1, leaf2, leaf3, leaf4, leaf5, leaf6));
@@ -86,7 +87,7 @@ public class NodeLogicTest {
         Node root = new NodeImpl("root", leaf4, leaf6);
 
         //when
-        Iterator<Node> iterator = NodeLogic.getNodeIterator(root);
+        Iterator<Node> iterator = NodeLogic.getNodeIterator(root).iterator();
 
         //then
         List<Node> resultList = new ArrayList<>();
@@ -106,7 +107,7 @@ public class NodeLogicTest {
         Node leaf1a = new NodeImpl("leaf1a");
         Node root = new NodeImpl("leaf2", leaf1, leaf1a);
 
-        Iterator<Node> iterator = NodeLogic.getNodeIterator(root);
+        Iterator<Node> iterator = NodeLogic.getNodeIterator(root).iterator();
     }
     @Test
     public void notValidLeafWithNull(){
@@ -114,7 +115,7 @@ public class NodeLogicTest {
         Node leaf1a = new NodeImpl("leaf1a");
         Node root = new NodeImpl("leaf2", leaf1, leaf1a);
 
-        Iterator<Node> iterator = NodeLogic.getNodeIterator(root);
+        Iterator<Node> iterator = NodeLogic.getNodeIterator(root).iterator();
     }
 
 

@@ -22,7 +22,9 @@ public class DirectoryController {
 
     @RequestMapping(path = "/other", method = RequestMethod.GET)
     public String testController(@RequestParam String param) throws IOException {
-        return fileService.withMapSolution(Paths.get(param));
+        //FIXME
+
+        return fileService.getIteratorForPath(Paths.get(param)).toString();
     }
 
 }

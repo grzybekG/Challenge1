@@ -10,7 +10,6 @@ import java.util.List;
 
 public interface FileService {
 
-    Iterator<Node> getIteratorForPath(Path path);
-    String withMapSolution(Path path) throws IOException;
+    Iterable<Node> getIteratorForPath(Path path);
 
 }

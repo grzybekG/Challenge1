@@ -9,21 +9,31 @@ import java.util.Iterator;
  */
 public class NodeImpl implements Node {
 
-    NodeIterator nodeIterator;
+    private NodeIterator nodeIterator;
+    private Node[] nodes;
     private String path;
+
 
     public NodeImpl(String path, Node... root) {
         this.path = path;
-        nodeIterator = new NodeIterator(root);
+        this.nodes = root;
     }
 
     @Override
-    public Iterator<Node> getChildren() {
-        return nodeIterator;
+    public Iterable<Node> getChildren() {
+        return new NodeImpl(path, nodes);
     }
 
     @Override
     public String getData() {
         return path;
+    }
+
+    @Override
+    public Iterator iterator() {
+        if (nodeIterator == null) {
+            nodeIterator = new NodeIterator(nodes);
+        }
+        return nodeIterator;
     }
 }

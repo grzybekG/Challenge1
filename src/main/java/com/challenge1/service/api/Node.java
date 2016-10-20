@@ -1,12 +1,10 @@
 package com.challenge1.service.api;
 
 
-import java.util.Iterator;
-
 /**
  *
  */
-public interface  Node<E> {
-    Iterator<Node<E>> getChildren();
+public interface  Node<E> extends Iterable<Node> {
+    Iterable<Node> getChildren();
     E getData();
 }

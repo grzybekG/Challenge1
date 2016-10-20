@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Stack;
 
 public class NodeLogic {
-    public static <E extends Node> Iterator<Node> getNodeIterator(E root) {
+    public static <E extends Node> Iterable<Node> getNodeIterator(E root) {
         return root.getChildren();
     }
 

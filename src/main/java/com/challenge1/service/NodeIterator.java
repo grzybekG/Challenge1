@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Stack;
 
 /**
@@ -15,6 +16,7 @@ import java.util.Stack;
 public class NodeIterator implements Iterator<Node> {
     Logger LOG = LoggerFactory.getLogger(this.getClass());
     private Stack<Node> nodeStack = new Stack<>();
+    private Iterator<Node> tmpIterator;
 
     public NodeIterator(Node[] nodes) {
         for (Node node : nodes) {
@@ -36,16 +38,18 @@ public class NodeIterator implements Iterator<Node> {
         if (!hasNext()) {
             throw new IndexOutOfBoundsException("no next element.");
         }
-        Node peek = nodeStack.peek();
-        Iterator<Node> tmpIterator = peek.getChildren();
+        if ((tmpIterator == null || !tmpIterator.hasNext()) && !nodeStack.empty()) {
+            tmpIterator = nodeStack.peek().iterator();
+        }
         if (tmpIterator.hasNext()) {
             while (tmpIterator.hasNext()) {
-                nodeStack.push(tmpIterator.next());
+               nodeStack.push(tmpIterator.next());
             }
         } else {
-            LOG.info("Stack size is {}, obj returned {}", nodeStack.size(), peek);
-            nodeStack.remove(peek);
-            return peek;
+            Node pop = nodeStack.pop();
+            LOG.info("Stack size is {}, obj returned {}", nodeStack.size(), pop);
+
+            return pop;
         }
         return next();
     }

@@ -19,19 +19,20 @@ public class FileNodeImplTest {
     @Test
     public void shouldReturnSth() { //integration test
         //given
-        FileNodeImpl fileRoot = new FileNodeImpl(Paths.get("c:/dev"));
 
-//        NodeImpl node = new NodeImpl(fileRoot.getData().toString(), fileRoot);
+        FileNodeImpl fileRoot = new FileNodeImpl(Paths.get("c:/root"));
+        Iterable<Node> nodeIterator = NodeLogic.getNodeIterator(fileRoot);
         //when
-        Iterator<Node> node = NodeLogic.getNodeIterator(fileRoot);
-
+        Iterator<Node> iterator = nodeIterator.iterator();
         //then
         List<String> pathList = new ArrayList<>();
-        while (node.hasNext()) {
-            Node next = node.next();
+        while (iterator.hasNext()) {
+            Node next = iterator.next();
+
+
+            System.out.println("path : [" + next.getData() + "]");
             Assert.assertThat(pathList.contains(next.getData().toString()), is(false));
             pathList.add(next.getData().toString());
-
         }
     }
 
