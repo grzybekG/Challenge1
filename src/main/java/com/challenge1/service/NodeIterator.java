@@ -18,7 +18,7 @@ public class NodeIterator implements Iterator<Node> {
     private Stack<Node> nodeStack = new Stack<>();
     private Iterator<Node> tmpIterator;
 
-    public NodeIterator(Node[] nodes) {
+    public NodeIterator(List<Node> nodes ) {
         for (Node node : nodes) {
             nodeStack.push(node);
         }

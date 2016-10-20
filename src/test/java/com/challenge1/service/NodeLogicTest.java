@@ -35,7 +35,6 @@ public class NodeLogicTest {
         Node three = new NodeImpl("three");
         Node root = new NodeImpl("path", one, two, three);
 
-        // Iterator<Node> iterator = root.iterator();
         Iterator<Node> nodeIterator = NodeLogic.getNodeIterator(root).iterator();
 
         Assert.assertThat(ImmutableList.copyOf(nodeIterator), containsInAnyOrder(one, two, three));

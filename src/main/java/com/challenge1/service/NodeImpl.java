@@ -2,7 +2,9 @@ package com.challenge1.service;
 
 import com.challenge1.service.api.Node;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by mlgy on 12/10/2016.
@@ -10,13 +12,17 @@ import java.util.Iterator;
 public class NodeImpl implements Node {
 
     private NodeIterator nodeIterator;
-    private Node[] nodes;
+    private List<Node> nodes;
     private String path;
 
 
     public NodeImpl(String path, Node... root) {
         this.path = path;
-        this.nodes = root;
+        this.nodes = Arrays.asList(root);
+    }
+    public NodeImpl(String path, List<Node> nodes) {
+        this.path = path;
+        this.nodes = nodes;
     }
 
     @Override

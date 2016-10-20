@@ -1,6 +1,8 @@
 package com.challenge1.service;
 
 import com.challenge1.service.api.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -14,26 +16,24 @@ import java.util.List;
  * Created by mlgy on 18/10/2016.
  */
 public class FileNodeImpl implements Node<Path> {
-
+    Logger LOG = LoggerFactory.getLogger(this.getClass());
     private Path path;
-    Iterator<Node> iterator;
+    private Iterator<Node> iterator;
 
     public FileNodeImpl(Path path) {
         this.path = path;
     }
 
     public Iterator<Node> iterator() {
-        List<Node> list = new ArrayList<>();
+        List<Node> nodes = new ArrayList<>();
         if (iterator == null) {
+       //TODO     FileUtils.iterateFiles(new File(path.toString()), FalseFileFilter.INSTANCE, DirectoryFileFilter.INSTANCE);
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
-                Iterator<Path> iterator = directoryStream.iterator();
-                while (iterator.hasNext()) {
-                    list.add(new FileNodeImpl(iterator.next()));
-                }
+                directoryStream.forEach(p -> nodes.add(new FileNodeImpl(p)));
             } catch (IOException ex) {
-                //proper exc handling
+                LOG.info("There was an exception when getting directoryStream - original message {}",ex.getMessage());
             }
-            iterator = new NodeIterator(list.toArray(new Node[list.size()]));
+            iterator = new NodeIterator(nodes);
 
         }
         return iterator;
