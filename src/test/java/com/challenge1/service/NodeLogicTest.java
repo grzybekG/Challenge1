@@ -9,20 +9,18 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static com.challenge1.service.NodeLogic.getNodeIterator;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 
-/**
- * Created by mlgy on 2016-09-28.
- */
 public class NodeLogicTest {
-    Logger LOG = LoggerFactory.getLogger(this.getClass());
+    private Logger LOG = LoggerFactory.getLogger(this.getClass());
 
     @Test
     public void shouldHaveNoChild() {
-        Node root = new NodeImpl("root");
-        Iterator<Node> nodeIterator = root.getChildren().iterator();
+        Node<String> root = new NodeImpl("root");
+        Iterator<Node<String>> nodeIterator = getNodeIterator(root).iterator();
 
         assertFalse(nodeIterator.hasNext());
 
@@ -30,25 +28,26 @@ public class NodeLogicTest {
 
     @Test
     public void shouldReturnAllLeafs() {
-        Node one = new NodeImpl("one");
-        Node two = new NodeImpl("two");
-        Node three = new NodeImpl("three");
-        Node root = new NodeImpl("path", one, two, three);
+        Node<String> one = new NodeImpl("one");
+        Node<String> two = new NodeImpl("two");
+        Node<String> three = new NodeImpl("three");
+        Node<String> root = new NodeImpl("path",Arrays.asList(one, two, three));
 
-        Iterator<Node> nodeIterator = NodeLogic.getNodeIterator(root).iterator();
-
-        Assert.assertThat(ImmutableList.copyOf(nodeIterator), containsInAnyOrder(one, two, three));
+        Iterator<Node<String>> nodeIterator = getNodeIterator(root).iterator();
+        ImmutableList<Node<?>> nodes = ImmutableList.copyOf(nodeIterator);
+        Assert.assertThat(nodes, containsInAnyOrder(one, two, three));
     }
 
     @Test
+
     public void shouldRetNestedLeafs() {
 
-        Node leaf1 = new NodeImpl("leaf1");
-        Node leaf2 = new NodeImpl("leaf2", leaf1);
-        Node root = new NodeImpl("root", leaf2);
-        Iterator<Node> iterator = NodeLogic.getNodeIterator(root).iterator();
+        Node<String> leaf1 = new NodeImpl("leaf1");
+        Node<String> leaf2 = new NodeImpl("leaf2", leaf1);
+        Node<String> root = new NodeImpl("root", leaf2);
+        Iterator<Node<String>> iterator = getNodeIterator(root).iterator();
 
-        ImmutableList<Node> nodes = ImmutableList.copyOf(iterator);
+        ImmutableList<Node<String>> nodes = ImmutableList.copyOf(iterator);
         Assert.assertThat(nodes, containsInAnyOrder(leaf1, leaf2));
         Assert.assertThat(nodes.size(), is(2));
 
@@ -57,18 +56,19 @@ public class NodeLogicTest {
     @Test
     public void shouldRetNestedLeafsFromAllBranches() {
         //given
-        Node leaf1 = new NodeImpl("leaf1");
-        Node leaf2 = new NodeImpl("leaf2", leaf1);
-        Node leaf3 = new NodeImpl("leaf3", leaf2);
-        Node leaf4 = new NodeImpl("leaf4", leaf3);
-        Node leaf5 = new NodeImpl("leaf5");
-        Node leaf6 = new NodeImpl("leaf6", leaf5);
-        Node root = new NodeImpl("root", leaf4, leaf6);
+        Node<String> leaf1 = new NodeImpl("leaf1");
+        Node<String> leaf2 = new NodeImpl("leaf2", leaf1);
+        Node<String> leaf3 = new NodeImpl("leaf3", leaf2);
+        Node<String> leaf4 = new NodeImpl("leaf4", leaf3);
+        Node<String> leaf5 = new NodeImpl("leaf5");
+        Node<String> leaf6 = new NodeImpl("leaf6", leaf5);
+        Node<String> root = new NodeImpl("root", Arrays.asList(leaf4, leaf6));
         //when
-        Iterable<Node> nodeIterator = NodeLogic.getNodeIterator(root);
-        Iterator<Node> iterator = nodeIterator.iterator();
+        Iterable<Node<String>> nodeIterable = getNodeIterator(root);
+
         //then
-        ImmutableList<Node> nodes = ImmutableList.copyOf(iterator);
+        ImmutableList<Node<String>> nodes = ImmutableList.copyOf(nodeIterable);
+
         Assert.assertThat(nodes, containsInAnyOrder(leaf1, leaf2, leaf3, leaf4, leaf5, leaf6));
         Assert.assertThat(nodes.size(), is(6));
     }
@@ -76,17 +76,17 @@ public class NodeLogicTest {
     @Test
     public void shouldRetNestedLeafsFromAllBranchesWithMultipleLeafsOnNested() {
         //given
-        Node leaf1 = new NodeImpl("leaf1");
-        Node leaf1a = new NodeImpl("leaf1a");
-        Node leaf2 = new NodeImpl("leaf2", leaf1, leaf1a);
-        Node leaf3 = new NodeImpl("leaf3", leaf2);
-        Node leaf4 = new NodeImpl("leaf4", leaf3);
-        Node leaf5 = new NodeImpl("leaf5");
-        Node leaf6 = new NodeImpl("leaf6", leaf5);
-        Node root = new NodeImpl("root", leaf4, leaf6);
+        Node<String> leaf1 = new NodeImpl("leaf1");
+        Node<String> leaf1a = new NodeImpl("leaf1a");
+        Node<String> leaf2 = new NodeImpl("leaf2", Arrays.asList(leaf1, leaf1a));
+        Node<String> leaf3 = new NodeImpl("leaf3", leaf2);
+        Node<String> leaf4 = new NodeImpl("leaf4", leaf3);
+        Node<String> leaf5 = new NodeImpl("leaf5");
+        Node<String> leaf6 = new NodeImpl("leaf6", leaf5);
+        Node<String> root = new NodeImpl("root", Arrays.asList(leaf4, leaf6));
 
         //when
-        Iterator<Node> iterator = NodeLogic.getNodeIterator(root).iterator();
+        Iterator<Node<String>> iterator = getNodeIterator(root).iterator();
 
         //then
         List<Node> resultList = new ArrayList<>();
@@ -97,26 +97,17 @@ public class NodeLogicTest {
             resultList.add(next);
         }
 
-        Assert.assertThat(resultList, containsInAnyOrder(leaf1, leaf1a, leaf2, leaf3, leaf4, leaf5, leaf6));
+        Assert.assertThat(resultList,containsInAnyOrder(leaf1, leaf1a, leaf2, leaf3, leaf4, leaf5, leaf6));
         Assert.assertThat(resultList.size(), is(7));
     }
-    @Test
-    public void notValidNullLeaf(){
-        Node leaf1 = null;
-        Node leaf1a = new NodeImpl("leaf1a");
-        Node root = new NodeImpl("leaf2", leaf1, leaf1a);
 
-        Iterator<Node> iterator = NodeLogic.getNodeIterator(root).iterator();
+    @Test(expected = NullPointerException.class)
+    public void notValidNullLeaf() {
+        Node<String> leaf1a = new NodeImpl("leaf1a");
+        Node<String> root = new NodeImpl("leaf2",Arrays.asList(null, leaf1a));
+
+        Iterator<Node<String>> iterator = getNodeIterator(root).iterator();
+        ImmutableList.copyOf(iterator);
+        assert (true);
     }
-    @Test
-    public void notValidLeafWithNull(){
-        Node leaf1 = new NodeImpl(null);
-        Node leaf1a = new NodeImpl("leaf1a");
-        Node root = new NodeImpl("leaf2", leaf1, leaf1a);
-
-        Iterator<Node> iterator = NodeLogic.getNodeIterator(root).iterator();
-    }
-
-
-
 }

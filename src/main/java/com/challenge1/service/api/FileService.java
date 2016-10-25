@@ -1,15 +1,11 @@
 package com.challenge1.service.api;
 
-import com.google.common.collect.Iterables;
+import rx.Observable;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Iterator;
-import java.util.List;
 
 public interface FileService {
 
-    Iterable<Node> getIteratorForPath(Path path);
+    Observable<Node<Path>> getObservableFor(Path path);
 
 }

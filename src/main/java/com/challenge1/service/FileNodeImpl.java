@@ -12,39 +12,41 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by mlgy on 18/10/2016.
- */
-public class FileNodeImpl implements Node<Path> {
-    Logger LOG = LoggerFactory.getLogger(this.getClass());
+
+class FileNodeImpl implements Node<Path> {
+    private Logger LOG = LoggerFactory.getLogger(this.getClass());
     private Path path;
-    private Iterator<Node> iterator;
+
+    private Iterator<Node<Path>> iterator;
 
     public FileNodeImpl(Path path) {
         this.path = path;
     }
 
-    public Iterator<Node> iterator() {
-        List<Node> nodes = new ArrayList<>();
-        if (iterator == null) {
-       //TODO     FileUtils.iterateFiles(new File(path.toString()), FalseFileFilter.INSTANCE, DirectoryFileFilter.INSTANCE);
-            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
-                directoryStream.forEach(p -> nodes.add(new FileNodeImpl(p)));
-            } catch (IOException ex) {
-                LOG.info("There was an exception when getting directoryStream - original message {}",ex.getMessage());
-            }
-            iterator = new NodeIterator(nodes);
-
+    public Iterator<Node<Path>> iterator() {
+        List<Node<Path>> nodes = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
+            directoryStream.forEach(p -> nodes.add(new FileNodeImpl(p)));
+        } catch (IOException ex) {
+            //FIXME 2x logging?!?!
+            LOG.info("There was an exception when getting directoryStream - original message {}", ex.getMessage());
         }
+
+        iterator = nodes.iterator();
+
         return iterator;
     }
 
+
     @Override
-    public Iterable<Node> getChildren() {
-
-        return new FileNodeImpl(path);
-
-
+    public Iterable<Node<Path>> getChildren() {
+        if (iterator == null) {
+            iterator();
+        }
+        if (iterator.hasNext()) {
+            return new FileNodeImpl(iterator.next().getData());
+        }
+        return new ArrayList<>();
     }
 
     @Override

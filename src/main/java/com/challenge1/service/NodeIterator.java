@@ -1,70 +1,59 @@
 package com.challenge1.service;
 
 import com.challenge1.service.api.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.nio.file.DirectoryStream;
-import java.nio.file.Path;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Stack;
 
-/**
- * Created by mlgy on 12/10/2016.
- */
-public class NodeIterator implements Iterator<Node> {
-    Logger LOG = LoggerFactory.getLogger(this.getClass());
-    private Stack<Iterator<Node>> nodeStack = new Stack<>();
-    //private Iterator<Node> tmpIterator;
+ class NodeIterator<E> implements Iterable<Node<E>> {
+    private Stack<Iterator<Node<E>>> nodeStack = new Stack<>();
 
-    public NodeIterator(List<Node> nodes) {
-        nodeStack.push(nodes.iterator());
+    /**
+     *
+     * @param root not null instance of Node implementation
+     *
+     */
+    NodeIterator(Node<E> root) throws IllegalArgumentException{
+        nodeStack.push(root.iterator());
+
     }
 
     @Override
-    public boolean hasNext() {
-
-        for (Iterator<Node> single : nodeStack) {
-            if (single.hasNext()) {
-                return true;
-            }
-
-        }
-        return false;
-    }
-
-        /**
-         * return next node when there is no node
-         * throw IndexOutOfBoundsException when no next element
-         */
-        @Override
-        public Node next () {
-            if (!hasNext()) {
-                throw new IndexOutOfBoundsException("no next element.");
-            }
-
-            Iterator<Node> peek = nodeStack.peek();
-            if (peek.hasNext()) {
-                Node next = peek.next();
-                if (next != null && next.getChildren() != null) {
-                    Iterator<Node> childrenIterator = next.iterator();
-                    if (childrenIterator.hasNext()) {
-                        nodeStack.push(childrenIterator);
+    public Iterator<Node<E>> iterator() {
+        return new Iterator<Node<E>>() {
+            @Override
+            public boolean hasNext() {
+                for (Iterator<?> single : nodeStack) {
+                    if (single.hasNext()) {
+                        return true;
                     }
                 }
-                return next;
+                return false;
+            }
 
-            } else {
+            @Override
+            public Node<E> next() {
+//              FIXME  if (!hasNext()) {
+//                    throw new NoSuchElementException("no next element.");
+//                }
+
+                Iterator<Node<E>> peek = nodeStack.peek();
+                if (peek.hasNext()) {
+                    Node<E> next = peek.next();
+                    if (next != null && next.getChildren() != null) {
+                        Iterator<Node<E>> childrenIterator = next.iterator();
+                        if (childrenIterator.hasNext()) {
+                            nodeStack.push(childrenIterator);
+                        }
+                    }if(!peek.hasNext()){
+                        nodeStack.remove(peek);
+                    }
+                    return next;
+                }
+
                 nodeStack.remove(peek);
-
                 return next();
             }
-        }
-
-        @Override
-        public void remove () {
-            throw new UnsupportedOperationException("Cannot perform this operation");
-        }
-
+        };
     }
+}
