@@ -19,8 +19,10 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Observable<Node<Path>> getObservableFor(Path path) {
-        Iterable<Node<Path>> nodeIterator = NodeLogic.getNodeIterator(new FileNodeImpl(path));
+        Iterable<Node<Path>> nodeIterator = NodeLogic.getNodeIterator(new FileHandlerImpl(path));
+
         Observable<Node<Path>> feed = ObservableServiceImpl.getObservable(nodeIterator);
+
 
         LOG.info("Getting iterator for path {}.", path);
 
@@ -43,7 +45,7 @@ public class FileServiceImpl implements FileService {
             }
         });
 
-        return null;
+        return feed;
     }
 
 

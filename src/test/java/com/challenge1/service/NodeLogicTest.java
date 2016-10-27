@@ -89,7 +89,7 @@ public class NodeLogicTest {
         Iterator<Node<String>> iterator = getNodeIterator(root).iterator();
 
         //then
-        List<Node> resultList = new ArrayList<>();
+        List<Node<?>> resultList = new ArrayList<>();
 
         while (iterator.hasNext()) {
             Node next = iterator.next();
@@ -108,6 +108,19 @@ public class NodeLogicTest {
 
         Iterator<Node<String>> iterator = getNodeIterator(root).iterator();
         ImmutableList.copyOf(iterator);
+
+    }
+    @Test(expected = NoSuchElementException.class)
+    public void shouldThrowExceptionWhenNoNextElement() {
+
+        Node<String> root = new NodeImpl("leaf2");
+
+        Iterator<Node<String>> iterator = getNodeIterator(root).iterator();
+        Assert.assertThat(iterator.hasNext(), is(false));
+
+        iterator.next();
+
+
         assert (true);
     }
 }

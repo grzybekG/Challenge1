@@ -7,9 +7,6 @@ import rx.Observable;
 import java.nio.file.Path;
 import java.util.Iterator;
 
-/**
- * Created by mlgy on 20/10/2016.
- */
 public class ObservableServiceImpl implements ObservableService {
 
     public static Observable<Node<Path>> getObservable(Iterable<Node<Path>> nodeIterable) {
@@ -19,6 +16,7 @@ public class ObservableServiceImpl implements ObservableService {
             while (iterator.hasNext()){
                 subscriber.onNext(iterator.next());
             }
+            subscriber.onCompleted();
 
         });
     }

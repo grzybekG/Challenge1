@@ -9,42 +9,40 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 
-class FileNodeImpl implements Node<Path> {
+class FileHandlerImpl implements Node<Path> {
     private Logger LOG = LoggerFactory.getLogger(this.getClass());
     private Path path;
 
-    private Iterator<Node<Path>> iterator;
+    private Iterator<Node<Path>> iterator = Collections.emptyIterator();
 
-    public FileNodeImpl(Path path) {
+    FileHandlerImpl(Path path) {
         this.path = path;
     }
 
     public Iterator<Node<Path>> iterator() {
         List<Node<Path>> nodes = new ArrayList<>();
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
-            directoryStream.forEach(p -> nodes.add(new FileNodeImpl(p)));
-        } catch (IOException ex) {
-            //FIXME 2x logging?!?!
-            LOG.info("There was an exception when getting directoryStream - original message {}", ex.getMessage());
+        if (path.toFile().isDirectory()) {
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
+                directoryStream.forEach(p -> nodes.add(new FileHandlerImpl(p)));
+                iterator = nodes.iterator();
+            } catch (IOException ex) {
+                LOG.error("There was an exception when getting directoryStream - original message {}, FULL STACK : {}", ex.getMessage(), ex);
+            }
         }
-
-        iterator = nodes.iterator();
-
         return iterator;
     }
 
 
     @Override
     public Iterable<Node<Path>> getChildren() {
-        if (iterator == null) {
-            iterator();
-        }
+
         if (iterator.hasNext()) {
-            return new FileNodeImpl(iterator.next().getData());
+            return new FileHandlerImpl(iterator.next().getData());
         }
         return new ArrayList<>();
     }

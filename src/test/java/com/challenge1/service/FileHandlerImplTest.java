@@ -19,13 +19,13 @@ import java.util.List;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
 
- public class FileNodeImplTest {
+ public class FileHandlerImplTest {
     private Logger LOG = LoggerFactory.getLogger(this.getClass());
-    private static String TEST_RESOURCE_PATH = "\\src\\test\\resources\\ParentFolder";
+    private static String TEST_RESOURCE_PATH ="\\src\\test\\resources\\ParentFolder";
 
     @BeforeClass
     public static void setUp() {
-        TEST_RESOURCE_PATH = new File(".").getAbsolutePath() + TEST_RESOURCE_PATH;
+        TEST_RESOURCE_PATH = new File("").getAbsolutePath() + TEST_RESOURCE_PATH;
         System.out.print("TEST RESOURCE PATH: [" + TEST_RESOURCE_PATH + "].");
     }
 
@@ -34,15 +34,11 @@ import static org.hamcrest.core.Is.is;
     public void shouldReturnStructureWithoutRepetitions() { //integration test
         //given
 
-        FileNodeImpl fileRoot = new FileNodeImpl(Paths.get("c:/dev"));
+        FileHandlerImpl fileRoot = new FileHandlerImpl(Paths.get("c:/dev"));
         Iterable<Node<Path>> nodeIterator = NodeLogic.getNodeIterator(fileRoot);
-
         //////////////////////
-
         ObservableServiceImpl.getObservable(nodeIterator);
-
         ////////////////////
-
 
         //when
         Iterator<Node<Path>> iterator = nodeIterator.iterator();
@@ -58,8 +54,7 @@ import static org.hamcrest.core.Is.is;
 
     @Test
     public void shouldReturnEmptyFolderIterator() throws Exception {
-
-        FileNodeImpl fileIterable = new FileNodeImpl(Paths.get(TEST_RESOURCE_PATH + "/SubFolder1/EmptyFolder"));
+        FileHandlerImpl fileIterable = new FileHandlerImpl(Paths.get(TEST_RESOURCE_PATH + "/SubFolder1/EmptyFolder"));
         Iterator<Node<Path>> iterator = fileIterable.iterator();
         ImmutableList<Node> nodes = ImmutableList.copyOf(iterator);
         for (Node node : nodes) {
@@ -71,14 +66,14 @@ import static org.hamcrest.core.Is.is;
 
     @Test
     public void shouldReturnWholeStructure() throws Exception {
-        Iterable<Node<Path>> nodes = NodeLogic.getNodeIterator(new FileNodeImpl(Paths.get(TEST_RESOURCE_PATH)));
+        Iterable<Node<Path>> nodes = NodeLogic.getNodeIterator(new FileHandlerImpl(Paths.get(TEST_RESOURCE_PATH)));
 
         Iterator<Node<Path>> iterator = nodes.iterator();
         ImmutableList<Node> result = ImmutableList.copyOf(iterator);
         for (Node node : result) {
             LOG.info("Path  is" + node.getData());
         }
-        Assert.assertThat(result.size(), Matchers.is(7));
+        Assert.assertThat(result.size(), Matchers.is(8));
     }
 
 
