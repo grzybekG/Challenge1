@@ -41,13 +41,13 @@ public class NodeLogicTest {
     @Test
 
     public void shouldRetNestedLeafs() {
-
         Node<String> leaf1 = new NodeImpl("leaf1");
         Node<String> leaf2 = new NodeImpl("leaf2", leaf1);
         Node<String> root = new NodeImpl("root", leaf2);
-        Iterator<Node<String>> iterator = getNodeIterator(root).iterator();
 
-        ImmutableList<Node<String>> nodes = ImmutableList.copyOf(iterator);
+        Iterator<Node<String>> nodeIterator = getNodeIterator(root).iterator();
+        ImmutableList<Node<?>> nodes = ImmutableList.copyOf(nodeIterator);
+
         Assert.assertThat(nodes, containsInAnyOrder(leaf1, leaf2));
         Assert.assertThat(nodes.size(), is(2));
 
@@ -64,13 +64,19 @@ public class NodeLogicTest {
         Node<String> leaf6 = new NodeImpl("leaf6", leaf5);
         Node<String> root = new NodeImpl("root", Arrays.asList(leaf4, leaf6));
         //when
-        Iterable<Node<String>> nodeIterable = getNodeIterator(root);
+        Iterator<Node<String>> nodeIterable = getNodeIterator(root).iterator();
 
         //then
-        ImmutableList<Node<String>> nodes = ImmutableList.copyOf(nodeIterable);
+        List<Node<?>> resultList = new ArrayList<>();
 
-        Assert.assertThat(nodes, containsInAnyOrder(leaf1, leaf2, leaf3, leaf4, leaf5, leaf6));
-        Assert.assertThat(nodes.size(), is(6));
+        while (nodeIterable.hasNext()) {
+            Node next = nodeIterable.next();
+            LOG.info("Element retrieved is {}", next.getData());
+            resultList.add(next);
+        }
+
+        Assert.assertThat(resultList, containsInAnyOrder(leaf1, leaf2, leaf3, leaf4, leaf5, leaf6));
+        Assert.assertThat(resultList.size(), is(6));
     }
 
     @Test
@@ -118,9 +124,6 @@ public class NodeLogicTest {
         Iterator<Node<String>> iterator = getNodeIterator(root).iterator();
         Assert.assertThat(iterator.hasNext(), is(false));
 
-        iterator.next();
-
-
-        assert (true);
+        iterator.next(); //expecting npe from here
     }
 }

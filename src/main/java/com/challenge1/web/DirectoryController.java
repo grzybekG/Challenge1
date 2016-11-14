@@ -1,7 +1,8 @@
 package com.challenge1.web;
 
-import com.challenge1.service.api.FileService;
+import com.challenge1.service.api.ObserverService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -10,13 +11,14 @@ import java.nio.file.Paths;
 @RestController
 public class DirectoryController {
     @Autowired
-    private FileService fileService;
+    private ObserverService fileService;
 
     @RequestMapping(path = "/other", method = RequestMethod.GET)
-    public String testController(@RequestParam String param) throws IOException {
-        //FIXME
+    public String testController(StompHeaderAccessor accessor) throws IOException {
 
-        return fileService.getObservableFor(Paths.get(param)).toString();
+        //FIXME Return stream
+        //fileService.getObservableForPath(Paths.get(param));
+        return " abc";
     }
 
 }

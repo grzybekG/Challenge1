@@ -11,50 +11,62 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by mlgy on 20/10/2016.
- */
-public class StructureWatcher<T> implements Runnable{
-    Logger LOG = LoggerFactory.getLogger(this.getClass());
-    Path path;
-    WatchService watcher;
+public class StructureWatcher {
+    private static final Logger LOG = LoggerFactory.getLogger(StructureWatcher.class);
+    private Path path;
+    private IMyListener listener;
+    Map<WatchKey, Path> watchMap = new HashMap<>();
 
 
+    public StructureWatcher(Path path, IMyListener listener) {
+        this.path = path;
+        this.listener = listener;
+    }
 
-    public static void  registerWatcher(Path path) throws IOException {
-        List<Path> pathList = new ArrayList<>();
-        Files.walkFileTree(path,new SimpleFileVisitor<Path>(){
-        @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException{
-            //LOG.info("FVR: " +file);
-            pathList.add(file);
-            return FileVisitResult.CONTINUE;
+    public void startWatching() {
+        try {
+            registerWatcher(path);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
+
+    private void registerWatcher(Path path) throws IOException {
+        List<Path> pathList = new ArrayList<>();
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
+                pathList.add(file);
+                return FileVisitResult.CONTINUE;
+            }
         });
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
-            Map<WatchKey, Path> someMap = new HashMap<>();
-         //   for (Path path : pathList) {
-           //     someMap.put(path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE), path);
-            //}
+
+            for (Path singlePath : pathList) {
+                WatchKey watchKey = path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+                listener.onAction(singlePath);
+                watchMap.put(watchKey, singlePath);
+                //todo read this  http://queue.acm.org/detail.cfm?id=2169076
+                //https://egghead.io/courses/introduction-to-reactive-programming
+                //https://docs.oracle.com/javase/tutorial/essential/io/examples/WatchDir.java (WatchDir Example)
+
+            }
             WatchKey watchKey;
             do {
                 watchKey = watchService.take();
-                Path eventDirectory = someMap.get(watchKey);
                 for (WatchEvent<?> event : watchKey.pollEvents()) {
                     WatchEvent.Kind<?> kind = event.kind();
                     Path eventPath = (Path) event.context();
-                    System.out.println("Sth Happend " + event.kind() + "In path [" + eventPath + "]");
+
                 }
             }
             while (watchKey.reset());
 
         } catch (Exception ex) {
+            LOG.error("Unexpected happend in ", ex);
         }
 
     }
 
-    @Override
-    public void run() {
 
-    }
 }
