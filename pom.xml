@@ -12,10 +12,6 @@
     <description>Demo project for Spring Boot</description>
     <url>http://cobertura.github.io/cobertura/</url>
 
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>1.4.1.RELEASE</version>
-
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
