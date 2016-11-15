@@ -1,6 +1,7 @@
 package com.challenge1.service;
 
 import com.challenge1.service.api.Node;
+import com.challenge1.service.api.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,14 +15,20 @@ import java.util.Iterator;
 import java.util.List;
 
 
-class FileHandlerImpl implements Node<Path> {
+public class FileHandlerImpl implements Node<Path> {
     private Logger LOG = LoggerFactory.getLogger(this.getClass());
     private Path path;
+    private Type type;
 
     private Iterator<Node<Path>> iterator = Collections.emptyIterator();
 
-    FileHandlerImpl(Path path) {
+    public FileHandlerImpl(Path path) {
         this.path = path;
+    }
+
+    public FileHandlerImpl(Path path, Type type) {
+        this.path = path;
+        this.type = type;
     }
 
     public Iterator<Node<Path>> iterator() {
@@ -50,5 +57,10 @@ class FileHandlerImpl implements Node<Path> {
     @Override
     public Path getData() {
         return path;
+    }
+
+    @Override
+    public Type getType() {
+        return type;
     }
 }

@@ -1,5 +1,6 @@
 package com.challenge1.service;
 
+import com.challenge1.ReadStreamApplicationTest;
 import com.challenge1.service.api.Node;
 import com.google.common.collect.ImmutableList;
 import org.hamcrest.Matchers;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -17,28 +19,18 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 
- public class FileHandlerImplTest {
+public class FileHandlerImplTest {
     private Logger LOG = LoggerFactory.getLogger(this.getClass());
-    private static String TEST_RESOURCE_PATH ="\\src\\test\\resources\\ParentFolder";
-
-    @BeforeClass
-    public static void setUp() {
-        TEST_RESOURCE_PATH = new File("").getAbsolutePath() + TEST_RESOURCE_PATH;
-        System.out.print("TEST RESOURCE PATH: [" + TEST_RESOURCE_PATH + "].");
-    }
 
     @Test
-
-    public void shouldReturnStructureWithoutRepetitions() { //integration test
+    public void shouldReturnStructureWithoutRepetitions() throws Exception { //integration test
         //given
-
-        FileHandlerImpl fileRoot = new FileHandlerImpl(Paths.get("c:/dev"));
+        URL parentFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder");
+        FileHandlerImpl fileRoot = new FileHandlerImpl(Paths.get(parentFolder.toURI()));
         Iterable<Node<Path>> nodeIterator = NodeLogic.getNodeIterator(fileRoot);
-        //////////////////////
-        ObservableServiceImpl.getObservable(nodeIterator);
-        ////////////////////
 
         //when
         Iterator<Node<Path>> iterator = nodeIterator.iterator();
@@ -54,7 +46,8 @@ import static org.hamcrest.core.Is.is;
 
     @Test
     public void shouldReturnEmptyFolderIterator() throws Exception {
-        FileHandlerImpl fileIterable = new FileHandlerImpl(Paths.get(TEST_RESOURCE_PATH + "/SubFolder1/EmptyFolder"));
+        URL pathFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder/SubFolder1/EmptyFolder");
+        FileHandlerImpl fileIterable = new FileHandlerImpl(Paths.get(pathFolder.toURI()));
         Iterator<Node<Path>> iterator = fileIterable.iterator();
         ImmutableList<Node> nodes = ImmutableList.copyOf(iterator);
         for (Node node : nodes) {
@@ -66,13 +59,15 @@ import static org.hamcrest.core.Is.is;
 
     @Test
     public void shouldReturnWholeStructure() throws Exception {
-        Iterable<Node<Path>> nodes = NodeLogic.getNodeIterator(new FileHandlerImpl(Paths.get(TEST_RESOURCE_PATH)));
+        URL parentFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder");
+        FileHandlerImpl fileRoot = new FileHandlerImpl(Paths.get(parentFolder.toURI()));
+        Iterable<Node<Path>> nodeIterator = NodeLogic.getNodeIterator(fileRoot);
 
-        Iterator<Node<Path>> iterator = nodes.iterator();
-        ImmutableList<Node> result = ImmutableList.copyOf(iterator);
-        for (Node node : result) {
-            LOG.info("Path  is" + node.getData());
-        }
+        Iterator<Node<Path>> nodes = nodeIterator.iterator();
+        ImmutableList<Node> result = ImmutableList.copyOf(nodes);
+
+
+        Assert.assertThat(result, Matchers.is(notNullValue()));
         Assert.assertThat(result.size(), Matchers.is(8));
     }
 

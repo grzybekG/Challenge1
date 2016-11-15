@@ -1,6 +1,7 @@
 package com.challenge1.service;
 
 import com.challenge1.service.api.Node;
+import com.challenge1.service.api.Type;
 import com.google.common.base.Preconditions;
 
 import java.util.*;
@@ -45,6 +46,11 @@ class NodeImpl implements Node<String> {
     @Override
     public String getData() {
         return path;
+    }
+
+    @Override
+    public Type getType() {
+        return null;
     }
 
     @Override
