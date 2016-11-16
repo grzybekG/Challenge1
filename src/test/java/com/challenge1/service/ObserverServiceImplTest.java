@@ -38,7 +38,7 @@ public class ObserverServiceImplTest {
         List<Node<?>> result = new ArrayList<>();
         observableForPath.subscribe(node ->result.add(node));
 
-        Assert.assertThat(result.size(), is(8));
+        Assert.assertThat(result.size(), is(7));
     }
 
 }

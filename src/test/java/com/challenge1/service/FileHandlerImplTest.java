@@ -46,7 +46,7 @@ public class FileHandlerImplTest {
 
     @Test
     public void shouldReturnEmptyFolderIterator() throws Exception {
-        URL pathFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder/SubFolder1/EmptyFolder");
+        URL pathFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder/SubFolder1/subFile1");
         FileHandlerImpl fileIterable = new FileHandlerImpl(Paths.get(pathFolder.toURI()));
         Iterator<Node<Path>> iterator = fileIterable.iterator();
         ImmutableList<Node> nodes = ImmutableList.copyOf(iterator);
@@ -68,7 +68,7 @@ public class FileHandlerImplTest {
 
 
         Assert.assertThat(result, Matchers.is(notNullValue()));
-        Assert.assertThat(result.size(), Matchers.is(8));
+        Assert.assertThat(result.size(), Matchers.is(7));
     }
 
 
