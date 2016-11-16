@@ -33,7 +33,7 @@ public class FileHandlerImpl implements Node<Path> {
 
     public Iterator<Node<Path>> iterator() {
         List<Node<Path>> nodes = new ArrayList<>();
-        if (path.toFile().isDirectory()) {
+        if (path!= null && path.toFile().isDirectory()) {
             try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
                 directoryStream.forEach(p -> nodes.add(new FileHandlerImpl(p)));
                 iterator = nodes.iterator();
