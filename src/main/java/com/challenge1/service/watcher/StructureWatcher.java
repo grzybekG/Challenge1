@@ -1,99 +1,97 @@
 package com.challenge1.service.watcher;
 
-import com.challenge1.service.FileHandlerImpl;
-import com.challenge1.service.NodeLogic;
-import com.challenge1.service.api.FileModificationListener;
-import com.challenge1.service.api.Node;
-import com.challenge1.service.api.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.HashMap;
-import java.util.Map;
 
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
+import static java.nio.file.StandardWatchEventKinds.*;
 
 public class StructureWatcher implements Runnable {
-    private static final Logger LOG = LoggerFactory.getLogger(StructureWatcher.class);
-    private Path path;
-    private Map<WatchKey, Path> watchMap = new HashMap<>();
-    private WatchService watchService;
-    private FileModificationListener listener;
 
+    private final DirectoryRegistration directoryRegistration;
 
-    public StructureWatcher(Path path, FileModificationListener listener) {
-        this.path = path;
-        this.listener = listener;
-        try {
-            this.watchService = FileSystems.getDefault().newWatchService();
-            registerSingle(path);
-            registerAll(path);
-
-        } catch (IOException e) {
-            LOG.error("Error in initialization of structure watcher", e);
-        }
+    @SuppressWarnings("unchecked")
+    static <T> WatchEvent<T> cast(WatchEvent<?> event) {
+        return (WatchEvent<T>) event;
     }
 
-    private void registerAll(Path path) throws IOException {
-        LOG.info("Incming path {}", path);
-        for (Node<Path> singlePath : NodeLogic.getNodeIterator(new FileHandlerImpl(path))) {
-            if (singlePath.getData().toFile().isDirectory()) {
-                LOG.info("Registering path {}", singlePath.getData());
-                registerSingle(singlePath.getData());
-            }
-        }
+    /**
+     * Register the given directory with the WatchService
+     */
+
+    /**
+     * Creates a WatchService and registers the given directory
+     */
+    @Autowired
+    public StructureWatcher(DirectoryRegistration directoryRegistration) {
+        this.directoryRegistration = directoryRegistration;
     }
 
-    public void registerSingle(Path singlePath) throws IOException {
-        WatchKey register = singlePath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
-        watchMap.put(register, singlePath);
-    }
-
-    private void registerWatcher() throws IOException {
-        WatchKey watchKey;
+    /**
+     * Process all events for keys queued to the watcher
+     */
+    void processEvents() {
         for (; ; ) {
-            try {
-                watchKey = watchService.take();
-            } catch (InterruptedException e) {
-                LOG.error("Cannot take from watch service", e);
-                return;
+
+            // wait for key to be signalled
+            WatchKey key = directoryRegistration.getKey();
+
+
+            Path dir = directoryRegistration.getKeys().get(key);
+            if (dir == null) {
+                System.err.println("WatchKey not recognized!!");
+                continue;
             }
-            Path directory = watchMap.get(watchKey);
 
-
-            for (WatchEvent<?> event : watchKey.pollEvents()) {
+            for (WatchEvent<?> event : key.pollEvents()) {
                 WatchEvent.Kind kind = event.kind();
-                Path eventPath = (Path) event.context();
-                if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                    registerAll(eventPath.toAbsolutePath());
 
-                    listener.onAction(new FileHandlerImpl(eventPath, Type.ENTRY_CREATE));
+                // TBD - provide example of how OVERFLOW event is handled
+                if (kind == OVERFLOW) {
+                    continue;
+                }
 
-                } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                    registerAll(eventPath.toAbsolutePath());
-                    listener.onAction(new FileHandlerImpl(eventPath, Type.ENTRY_MODIFY));
-                } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                    listener.onAction(new FileHandlerImpl(eventPath, Type.ENTRY_DELETE));
+                // Context for directory entry event is the file name of entry
+                WatchEvent<Path> ev = cast(event);
+                Path name = ev.context();
+                Path child = dir.resolve(name);
+
+                // print out event
+                System.out.format("%s: %s\n", event.kind().name(), child);
+
+                // if directory is created, and watching recursively, then
+                // register it and its sub-directories
+                if (kind == ENTRY_CREATE) {
+                    try {
+                        if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
+
+                            directoryRegistration.registerAll(child);
+                        }
+                    } catch (IOException x) {
+                        // ignore to keep sample readbale
+                    }
                 }
             }
-            //
-            if (!watchKey.reset()) {
-                watchMap.remove(watchKey);
+
+            // reset key and remove from set if directory no longer accessible
+            boolean valid = key.reset();
+            if (!valid) {
+                directoryRegistration.getKeys().remove(key);
+
+                // all directories are inaccessible
+                if (directoryRegistration.getKeys().isEmpty()) {
+                    break;
+                }
             }
-
         }
-
     }
 
 
     @Override
     public void run() {
-        try {
-            registerWatcher();
-        } catch (IOException e) {
-            LOG.error("There was an error during file structure watcher initialization.");
-        }
+        processEvents();
     }
 }
+
