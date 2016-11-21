@@ -7,6 +7,7 @@ import java.nio.file.WatchKey;
 
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 public class StructureWatcher implements Runnable {
@@ -57,8 +58,6 @@ public class StructureWatcher implements Runnable {
                 Path name = ev.context();
                 Path child = dir.resolve(name);
 
-                // print out event
-                System.out.format("%s: %s\n", event.kind().name(), child);
 
                 // if directory is created, and watching recursively, then
                 // register it and its sub-directories
@@ -66,6 +65,9 @@ public class StructureWatcher implements Runnable {
                     if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
                         directoryRegistration.registerAll(child);
                     }
+                }
+                if(kind == ENTRY_DELETE){
+                    directoryRegistration.removeKey(key);
                 }
             }
 
