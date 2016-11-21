@@ -1,12 +1,13 @@
 package com.challenge1.service.watcher;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
 
 import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
-import static java.nio.file.StandardWatchEventKinds.*;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 public class StructureWatcher implements Runnable {
 
@@ -24,7 +25,6 @@ public class StructureWatcher implements Runnable {
     /**
      * Creates a WatchService and registers the given directory
      */
-    @Autowired
     public StructureWatcher(DirectoryRegistration directoryRegistration) {
         this.directoryRegistration = directoryRegistration;
     }
@@ -32,9 +32,8 @@ public class StructureWatcher implements Runnable {
     /**
      * Process all events for keys queued to the watcher
      */
-    void processEvents() {
+    public void processEvents() {
         for (; ; ) {
-
             // wait for key to be signalled
             WatchKey key = directoryRegistration.getKey();
 
@@ -64,13 +63,8 @@ public class StructureWatcher implements Runnable {
                 // if directory is created, and watching recursively, then
                 // register it and its sub-directories
                 if (kind == ENTRY_CREATE) {
-                    try {
-                        if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
-
-                            directoryRegistration.registerAll(child);
-                        }
-                    } catch (IOException x) {
-                        // ignore to keep sample readbale
+                    if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
+                        directoryRegistration.registerAll(child);
                     }
                 }
             }
@@ -87,7 +81,6 @@ public class StructureWatcher implements Runnable {
             }
         }
     }
-
 
     @Override
     public void run() {

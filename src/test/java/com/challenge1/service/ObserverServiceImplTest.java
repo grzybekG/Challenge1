@@ -9,7 +9,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
+import rx.Subscription;
 import rx.observers.TestSubscriber;
+import rx.schedulers.Schedulers;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +43,7 @@ public class ObserverServiceImplTest {
             //cleaning for integration tests
         }
     }
+
     @Test
     public void shouldCreateNotNullObservableFoeExistingPath() throws Exception {
         ObservableService observerService = new ObserverServiceImpl();
@@ -72,34 +75,32 @@ public class ObserverServiceImplTest {
         //given
         URL parentFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder");
         String path = parentFolder.getPath().replaceFirst("^/(.:/)", "$1");
-        List<String> strings = Arrays.asList("test1", "test2");
 
         ObserverServiceImpl service = new ObserverServiceImpl();
         Observable<Node<?>> directoryWatcherObservable = service.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
 
-        TestSubscriber<Node<?>> testSubscriber = new TestSubscriber<>();
-
+        TestSubscriber<Node<?>> testSubscriber = new TestSubscriber();
+        testSubscriber.getOnNextEvents();
         directoryWatcherObservable.subscribe(testSubscriber);
-        //when
+
         Files.createDirectory(Paths.get(path + "/test1"));
         Files.createDirectory(Paths.get(path + "/test2"));
 
-
+        delay(1000l);
         //then
         List<Node<?>> emittedEvents = testSubscriber.getOnNextEvents();
-        testSubscriber.assertNoErrors();
+
 
         testSubscriber.awaitTerminalEventAndUnsubscribeOnTimeout(500l, TimeUnit.MICROSECONDS);
         Assert.assertThat(emittedEvents.size(), is(2));
         for (Node<?> node : emittedEvents) {
-             Assert.assertTrue(strings.contains(node.getData().toString()));
             Assert.assertThat(node.getType(), is(Type.ENTRY_CREATE));
         }
-
-
     }
 
-
+    private synchronized void delay(long l) throws InterruptedException {
+        wait(l);
+    }
 
     @Test
     public void integrationTestNestedFolders() throws Exception {
@@ -123,32 +124,5 @@ public class ObserverServiceImplTest {
         testSubscriber.awaitTerminalEventAndUnsubscribeOnTimeout(1500l, TimeUnit.MICROSECONDS);
         //TODO check emmitted events are one you expected
 
-
     }
-
-    @Test
-    public void integrationTest2NestedFolders() throws Exception {
-//TODO rewrite to test subscribe
-        /*ObserverServiceImpl service = new ObserverServiceImpl();
-        Observable<Node<?>> directoryWatcherObservable = service.getDirectoryWatcherObservable(Paths.get("c:\\dev"));
-        List<Node<?>> resultList = new ArrayList<>();
-        directoryWatcherObservable.subscribe(node -> {
-            System.out.println("There was an action [" + node.getType() + "] for path [" + node.getData().toString() + "]");
-            resultList.add(node);
-
-        });
-
-
-        Files.createDirectory(Paths.get("c:\\test\\test1"));
-
-        Files.createDirectory(Paths.get("c:\\test\\test1\\nestedDir"));
-
-        Files.createDirectory(Paths.get("c:\\test\\test1\\nestedDir\\nestedMore"));
-
-        FileUtils.deleteDirectory(new File("c:\\test\\test1"));
-
-        Assert.assertThat(resultList.size(), is(4));*/
-    }
-
-
 }
