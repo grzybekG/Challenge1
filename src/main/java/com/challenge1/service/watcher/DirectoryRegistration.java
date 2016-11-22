@@ -6,8 +6,6 @@ import com.challenge1.service.api.FileModificationListener;
 import com.challenge1.service.api.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,7 +17,7 @@ import java.util.Map;
 import static java.nio.file.StandardWatchEventKinds.*;
 
 public class DirectoryRegistration {
-    private Logger LOG = LoggerFactory.getLogger(this.getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DirectoryRegistration.class);
     private Map<WatchKey, Path> keys = new HashMap<>();
     private WatchService watchService;
     private FileModificationListener listener;
@@ -27,23 +25,34 @@ public class DirectoryRegistration {
     private NodeLogic nodeLogic;
 
     /**
-     * @param path
+     *
      * @param watchService
+     * @param nodeLogic
      * @param listener
      */
-    public DirectoryRegistration(Path path, WatchService watchService, NodeLogic nodeLogic, FileModificationListener listener) {
+    public DirectoryRegistration(WatchService watchService, NodeLogic nodeLogic, FileModificationListener listener) {
         this.watchService = watchService;
         this.nodeLogic = nodeLogic;
         this.listener = listener;
-        registerAll(path);
     }
 
-    public void register(Path dir) {
+    /**
+     * Initialization of registration - should be called after constructing object with listener
+     * @param path
+     */
+    public  void init(Path path){
+        registerAll(path);
+        initialRegister = false;
+    }
+
+    public void registerSingle(Path dir) {
         WatchKey key = null;
         try {
             if (dir.toFile().isDirectory()) {
                 LOG.info("Registering [{}]", dir);
                 key = dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+            }else {
+                return;
             }
 
             if (!initialRegister) {
@@ -51,12 +60,12 @@ public class DirectoryRegistration {
 
                 if (prev == null) {
                     listener.onAction(new FileHandlerImpl(dir, Type.ENTRY_CREATE));
-                    LOG.info("register: %s\n", dir);
+                    LOG.info("registering new path: {}\n", dir);
 
                 } else {
                     if (!dir.equals(prev)) {
                         listener.onAction(new FileHandlerImpl(dir, Type.ENTRY_MODIFY));
-                        LOG.info("update: %s -> %s\n", prev, dir);
+                        LOG.info("update: {} to  {}\n", prev, dir);
                     }
                 }
             }
@@ -70,11 +79,11 @@ public class DirectoryRegistration {
      * Register the given directory, and all its sub-directories, with the
      * WatchService.
      */
-    public void registerAll(final Path start) {
-        register(start);
+    public void registerAll(final Path root) {
+        registerSingle(root);
 
-        nodeLogic.getNodeIterator(new FileHandlerImpl(start)).forEach(node -> register(node.getData()));
-        initialRegister = false;
+        nodeLogic.getNodeIterator(new FileHandlerImpl(root)).forEach(node -> registerSingle(node.getData()));
+
     }
 
     public Map<WatchKey, Path> getKeys() {

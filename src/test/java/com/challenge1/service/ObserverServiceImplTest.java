@@ -164,7 +164,6 @@ public class ObserverServiceImplTest {
         delay(500l);
         Files.move(Paths.get(path + "/test1"), Paths.get(path + "/test2/test1"), StandardCopyOption.REPLACE_EXISTING);
         delay(500l);
-
         ///then
         List<Node<?>> emittedEvents = testSubscriber.getOnNextEvents();
         testSubscriber.assertNoErrors();
@@ -176,6 +175,46 @@ public class ObserverServiceImplTest {
         Assert.assertThat(emittedEvents.get(2).getType(), is(Type.ENTRY_DELETE));
         Assert.assertThat(emittedEvents.get(3).getType(), is(Type.ENTRY_MODIFY));
     }
+    @Test
+    public void multipleSubscriptions() throws Exception {
+        //given
+
+        Observable<Node<?>> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
+        TestSubscriber<Node<?>> testSubscriber = new TestSubscriber<>();
+        TestSubscriber<Node<?>> firstSubscriber = testSubscriber.create();
+        TestSubscriber<Node<?>> secondSubscriber = testSubscriber.create();
+
+        //when
+        directoryWatcherObservable.subscribe(firstSubscriber);
+        directoryWatcherObservable.subscribe(secondSubscriber);
+        Files.createDirectory(Paths.get(path + "/test1"));
+        Files.createDirectory(Paths.get(path + "/test2"));
+
+        delay(500l);
+        Files.move(Paths.get(path + "/test1"), Paths.get(path + "/test2/test1"), StandardCopyOption.REPLACE_EXISTING);
+        delay(500l);
+
+        ///then
+        List<Node<?>> firstSubscriberOnNextEvents = firstSubscriber.getOnNextEvents();
+        List<Node<?>> secondSubscriberOnNextEvents = secondSubscriber.getOnNextEvents();
+        firstSubscriber.assertNoErrors();
+        secondSubscriber.assertNoErrors();
+
+        Assert.assertThat(firstSubscriberOnNextEvents.size(), is(4));
+        Assert.assertThat(secondSubscriberOnNextEvents.size(), is(4));
+
+        Assert.assertThat(firstSubscriberOnNextEvents.get(0).getType(), is(Type.ENTRY_CREATE));
+        Assert.assertThat(firstSubscriberOnNextEvents.get(1).getType(), is(Type.ENTRY_CREATE));
+        Assert.assertThat(firstSubscriberOnNextEvents.get(2).getType(), is(Type.ENTRY_DELETE));
+        Assert.assertThat(firstSubscriberOnNextEvents.get(3).getType(), is(Type.ENTRY_MODIFY));
+    }
+
+
+
+
+
+
+
     private synchronized void delay(long l) throws InterruptedException {
         wait(l);
     }

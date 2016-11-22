@@ -20,8 +20,9 @@ public class DirectoryRegistrationTest {
     private NodeLogic nodeLogicMock = spy(NodeLogic.class);
 
     @Test
-    public void shouldBehave() {
-        DirectoryRegistration directoryRegistration = new DirectoryRegistration(path, watchService,nodeLogicMock, listener);
+    public void firstTest() {
+        DirectoryRegistration directoryRegistration = new DirectoryRegistration(watchService,nodeLogicMock, listener);
+        directoryRegistration.registerAll(path);
         ReflectionTestUtils.setField(directoryRegistration, "nodeLogic", nodeLogicMock);
 
 

@@ -12,12 +12,10 @@ import org.springframework.stereotype.Service;
 import rx.Observable;
 
 import java.nio.file.Path;
-import java.nio.file.WatchService;
-
 
 @Service
 public class ObserverServiceImpl implements ObservableService {
-    private static final  Logger LOG = LoggerFactory.getLogger(ObserverServiceImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ObserverServiceImpl.class);
     private NodeLogic nodeLogic;
 
     @Autowired
@@ -32,13 +30,13 @@ public class ObserverServiceImpl implements ObservableService {
 
     @Override
     public Observable<Node<?>> getDirectoryWatcherObservable(Path path) {
-        final WatchService watchService = WatchServiceFactory.getWatchService();
-
         return Observable.create(subscriber -> {
-            StructureWatcher watcher = new StructureWatcher(new DirectoryRegistration(path, watchService,nodeLogic, node -> {
+            DirectoryRegistration directoryRegistration = new DirectoryRegistration(WatchServiceFactory.getWatchService(), nodeLogic, node -> {
                 LOG.info("Node from observer listener emitted. For Path [{}] of Type [{}]", node.getData().toString(), node.getType());
                 subscriber.onNext(node);
-            }));
+            });
+            directoryRegistration.init(path);
+            StructureWatcher watcher = new StructureWatcher(directoryRegistration);
             Thread t = new Thread(watcher);
             t.start();
         });

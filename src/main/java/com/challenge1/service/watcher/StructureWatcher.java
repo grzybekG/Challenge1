@@ -13,18 +13,14 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
+
 public class StructureWatcher implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(StructureWatcher.class);
     private final DirectoryRegistration directoryRegistration;
-
     @SuppressWarnings("unchecked")
     static <T> WatchEvent<T> cast(WatchEvent<?> event) {
         return (WatchEvent<T>) event;
     }
-
-    /**
-     * Register the given directory with the WatchService
-     */
 
     /**
      * Creates a WatchService and registers the given directory
@@ -63,7 +59,7 @@ public class StructureWatcher implements Runnable {
 
 
                 // if directory is created, and watching recursively, then
-                // register it and its sub-directories
+                // registerSingle it and its sub-directories
                 if (kind == ENTRY_CREATE) {
                     if (Files.isDirectory(child, NOFOLLOW_LINKS)) {
                         directoryRegistration.registerAll(child);

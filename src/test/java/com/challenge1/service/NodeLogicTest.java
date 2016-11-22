@@ -12,11 +12,10 @@ import java.util.*;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.spy;
 
 public class NodeLogicTest {
     private Logger LOG = LoggerFactory.getLogger(this.getClass());
-    NodeLogic nodeLogic = spy(NodeLogic.class);
+    NodeLogic nodeLogic = new NodeLogic();
 
     @Test
     public void shouldHaveNoChild() {
