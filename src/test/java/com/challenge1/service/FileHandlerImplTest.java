@@ -21,16 +21,17 @@ import java.util.List;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.spy;
 
 public class FileHandlerImplTest {
     private Logger LOG = LoggerFactory.getLogger(this.getClass());
-
+    NodeLogic nodeLogic = spy(NodeLogic.class);
     @Test
     public void shouldReturnStructureWithoutRepetitions() throws Exception { //integration test
         //given
         URL parentFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder");
         FileHandlerImpl fileRoot = new FileHandlerImpl(Paths.get(parentFolder.toURI()));
-        Iterable<Node<Path>> nodeIterator = NodeLogic.getNodeIterator(fileRoot);
+        Iterable<Node<Path>> nodeIterator = nodeLogic.getNodeIterator(fileRoot);
 
         //when
         Iterator<Node<Path>> iterator = nodeIterator.iterator();
@@ -61,7 +62,7 @@ public class FileHandlerImplTest {
     public void shouldReturnWholeStructure() throws Exception {
         URL parentFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder");
         FileHandlerImpl fileRoot = new FileHandlerImpl(Paths.get(parentFolder.toURI()));
-        Iterable<Node<Path>> nodeIterator = NodeLogic.getNodeIterator(fileRoot);
+        Iterable<Node<Path>> nodeIterator = nodeLogic.getNodeIterator(fileRoot);
 
         Iterator<Node<Path>> nodes = nodeIterator.iterator();
         ImmutableList<Node> result = ImmutableList.copyOf(nodes);

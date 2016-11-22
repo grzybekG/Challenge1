@@ -1,5 +1,8 @@
 package com.challenge1.service.watcher;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
@@ -11,7 +14,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 public class StructureWatcher implements Runnable {
-
+    private static final Logger LOG = LoggerFactory.getLogger(StructureWatcher.class);
     private final DirectoryRegistration directoryRegistration;
 
     @SuppressWarnings("unchecked")
@@ -41,7 +44,7 @@ public class StructureWatcher implements Runnable {
 
             Path dir = directoryRegistration.getKeys().get(key);
             if (dir == null) {
-                System.err.println("WatchKey not recognized!!");
+             LOG.warn("WatchKey not recognized while processing events!!");
                 continue;
             }
 

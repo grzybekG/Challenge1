@@ -6,6 +6,7 @@ import com.challenge1.service.api.FileModificationListener;
 import com.challenge1.service.api.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,15 +20,21 @@ import static java.nio.file.StandardWatchEventKinds.*;
 
 public class DirectoryRegistration {
     private Logger LOG = LoggerFactory.getLogger(this.getClass());
-    private Map<WatchKey, Path> keys;
+    private Map<WatchKey, Path> keys = new HashMap<>();
     private WatchService watchService;
     private FileModificationListener listener;
     boolean initialRegister = true;
+    private NodeLogic nodeLogic;
 
-    public DirectoryRegistration(Path path, WatchService watchService, FileModificationListener listener) {
-        this.listener = listener;
-        this.keys = new HashMap<>();
+    /**
+     * @param path
+     * @param watchService
+     * @param listener
+     */
+    public DirectoryRegistration(Path path, WatchService watchService, NodeLogic nodeLogic, FileModificationListener listener) {
         this.watchService = watchService;
+        this.nodeLogic = nodeLogic;
+        this.listener = listener;
         registerAll(path);
     }
 
@@ -35,7 +42,7 @@ public class DirectoryRegistration {
         WatchKey key = null;
         try {
             if (dir.toFile().isDirectory()) {
-                LOG.info("Registering [{}]",dir);
+                LOG.info("Registering [{}]", dir);
                 key = dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
             }
 
@@ -66,7 +73,7 @@ public class DirectoryRegistration {
     public void registerAll(final Path start) {
         register(start);
 
-        NodeLogic.getNodeIterator(new FileHandlerImpl(start)).forEach(node -> register(node.getData()));
+        nodeLogic.getNodeIterator(new FileHandlerImpl(start)).forEach(node -> register(node.getData()));
         initialRegister = false;
     }
 

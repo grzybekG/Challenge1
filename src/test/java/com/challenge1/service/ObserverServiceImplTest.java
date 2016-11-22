@@ -9,6 +9,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 
@@ -17,20 +18,29 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.mockito.Mockito.spy;
 
 public class ObserverServiceImplTest {
-    URL parentFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder");
-    String path = parentFolder.getPath().replaceFirst("^/(.:/)", "$1");
+    private URL parentFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder");
+    private String path = parentFolder.getPath().replaceFirst("^/(.:/)", "$1");
+    private NodeLogic nodeLogic;
+    private ObserverServiceImpl observerService;
+
+    @Before
+    public void setUp() {
+        nodeLogic = spy(NodeLogic.class);
+        observerService = new ObserverServiceImpl(nodeLogic);
+    }
 
     @After
-    @Before
-    public void setup() {
+    public void tearDown() {
         URL parentFolder = ReadStreamApplicationTest.class.getResource("/ParentFolder");
         String path = parentFolder.getPath().replaceFirst("^/(.:/)", "$1");
         try {
@@ -47,21 +57,19 @@ public class ObserverServiceImplTest {
 
     @Test
     public void shouldCreateNotNullObservableFoeExistingPath() throws Exception {
-        ObservableService observerService = new ObserverServiceImpl();
+        ReflectionTestUtils.setField(observerService, "nodeLogic", nodeLogic);
         Observable<Node<?>> observableForPath = observerService.getObservableForPath(Paths.get(parentFolder.toURI()));
         Assert.assertThat(observableForPath, is(notNullValue()));
     }
 
     @Test
     public void shouldCreateNotNullObservableFoeNonExistingPath() throws Exception {
-        ObservableService observerService = new ObserverServiceImpl();
         Observable<Node<?>> observableForPath = observerService.getObservableForPath(null);
         Assert.assertThat(observableForPath, is(notNullValue()));
     }
 
     @Test
     public void shouldCreateObservableFormPath() throws Exception {
-        ObservableService observerService = new ObserverServiceImpl();
         Observable<Node<?>> observableForPath = observerService.getObservableForPath(Paths.get(parentFolder.toURI()));
         List<Node<?>> result = new ArrayList<>();
         observableForPath.subscribe(node -> result.add(node));
@@ -72,9 +80,7 @@ public class ObserverServiceImplTest {
     @Test //
     public void integrationTestSimpleFolderChange() throws Exception {
         //given
-
-        ObserverServiceImpl service = new ObserverServiceImpl();
-        Observable<Node<?>> directoryWatcherObservable = service.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
+        Observable<Node<?>> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
 
         TestSubscriber<Node<?>> testSubscriber = new TestSubscriber();
         testSubscriber.getOnNextEvents();
@@ -95,15 +101,11 @@ public class ObserverServiceImplTest {
         }
     }
 
-    private synchronized void delay(long l) throws InterruptedException {
-        wait(l);
-    }
-
     @Test
     public void integrationTestNestedFolders() throws Exception {
         //given
-        ObserverServiceImpl service = new ObserverServiceImpl();
-        Observable<Node<?>> directoryWatcherObservable = service.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
+
+        Observable<Node<?>> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
         TestSubscriber<Node<?>> testSubscriber = new TestSubscriber<>();
         //when
         directoryWatcherObservable.subscribe(testSubscriber);
@@ -117,7 +119,7 @@ public class ObserverServiceImplTest {
         testSubscriber.assertNoErrors();
 
 
-        //TODO check emmitted events are one you expected
+        //TODO check emitted events are one you expected
         Assert.assertThat(emittedEvents.size(), is(2));
 
     }
@@ -125,9 +127,7 @@ public class ObserverServiceImplTest {
     @Test
     public void integrationShouldWatchDeletingFolder() throws Exception {
         //given
-        ObserverServiceImpl service = new ObserverServiceImpl();
-
-        Observable<Node<?>> directoryWatcherObservable = service.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
+        Observable<Node<?>> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
         TestSubscriber<Node<?>> testSubscriber = new TestSubscriber<>();
         //when
         directoryWatcherObservable.subscribe(testSubscriber);
@@ -136,19 +136,49 @@ public class ObserverServiceImplTest {
         Files.createDirectory(Paths.get(path + "/test1/nestedDir/nestedMore"));
         delay(500l);
 
-        ///then
-
         FileUtils.forceDelete(new File(path + "/test1/nestedDir/nestedMore"));
         delay(500l);
+        ///then
         List<Node<?>> emittedEvents = testSubscriber.getOnNextEvents();
         testSubscriber.assertNoErrors();
 
         Assert.assertThat(emittedEvents.size(), is(4));
 
-        Assert.assertThat(emittedEvents.get(0).getType(),is(Type.ENTRY_CREATE));
-        Assert.assertThat(emittedEvents.get(1).getType(),is(Type.ENTRY_CREATE));
-        Assert.assertThat(emittedEvents.get(2).getType(),is(Type.ENTRY_CREATE));
-        Assert.assertThat(emittedEvents.get(3).getType(),is(Type.ENTRY_DELETE));
+        Assert.assertThat(emittedEvents.get(0).getType(), is(Type.ENTRY_CREATE));
+        Assert.assertThat(emittedEvents.get(1).getType(), is(Type.ENTRY_CREATE));
+        Assert.assertThat(emittedEvents.get(2).getType(), is(Type.ENTRY_CREATE));
+        Assert.assertThat(emittedEvents.get(3).getType(), is(Type.ENTRY_DELETE));
 
     }
+
+    @Test
+    public void shouldTrackModified() throws Exception {
+        //given
+
+        Observable<Node<?>> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
+        TestSubscriber<Node<?>> testSubscriber = new TestSubscriber<>();
+        //when
+        directoryWatcherObservable.subscribe(testSubscriber);
+        Files.createDirectory(Paths.get(path + "/test1"));
+        Files.createDirectory(Paths.get(path + "/test2"));
+        delay(500l);
+        Files.move(Paths.get(path + "/test1"), Paths.get(path + "/test2/test1"), StandardCopyOption.REPLACE_EXISTING);
+        delay(500l);
+
+        ///then
+        List<Node<?>> emittedEvents = testSubscriber.getOnNextEvents();
+        testSubscriber.assertNoErrors();
+
+        Assert.assertThat(emittedEvents.size(), is(4));
+
+        Assert.assertThat(emittedEvents.get(0).getType(), is(Type.ENTRY_CREATE));
+        Assert.assertThat(emittedEvents.get(1).getType(), is(Type.ENTRY_CREATE));
+        Assert.assertThat(emittedEvents.get(2).getType(), is(Type.ENTRY_DELETE));
+        Assert.assertThat(emittedEvents.get(3).getType(), is(Type.ENTRY_MODIFY));
+    }
+    private synchronized void delay(long l) throws InterruptedException {
+        wait(l);
+    }
+
+
 }
