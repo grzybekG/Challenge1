@@ -8,5 +8,5 @@ public interface Node<E> extends Iterable<Node<E>> {
 
     Iterable<Node<E>> getChildren();
     E getData();
-    Type getType();
+
 }

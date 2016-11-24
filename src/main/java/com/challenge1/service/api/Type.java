@@ -5,6 +5,9 @@ public enum Type {
     ENTRY_DELETE,
     ENTRY_MODIFY,
     ENTRY_CREATE,
-    OVERFLOW;
+    /**
+     * Used only when initialization happened
+     */
+    NEW_ENTRY;
 }
 

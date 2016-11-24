@@ -2,6 +2,7 @@ package com.challenge1.service.watcher;
 
 import com.challenge1.service.FileHandlerImpl;
 import com.challenge1.service.NodeLogic;
+import com.challenge1.service.PathContext;
 import com.challenge1.service.api.FileModificationListener;
 import com.challenge1.service.api.Type;
 import org.slf4j.Logger;
@@ -25,7 +26,6 @@ public class DirectoryRegistration {
     private NodeLogic nodeLogic;
 
     /**
-     *
      * @param watchService
      * @param nodeLogic
      * @param listener
@@ -38,9 +38,10 @@ public class DirectoryRegistration {
 
     /**
      * Initialization of registration - should be called after constructing object with listener
+     *
      * @param path
      */
-    public  void init(Path path){
+    public void init(Path path) {
         registerAll(path);
         initialRegister = false;
     }
@@ -51,7 +52,7 @@ public class DirectoryRegistration {
             if (dir.toFile().isDirectory()) {
                 LOG.info("Registering [{}]", dir);
                 key = dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-            }else {
+            } else {
                 return;
             }
 
@@ -59,12 +60,12 @@ public class DirectoryRegistration {
                 Path prev = keys.get(key);
 
                 if (prev == null) {
-                    listener.onAction(new FileHandlerImpl(dir, Type.ENTRY_CREATE));
+                    listener.onAction(new PathContext(dir, Type.ENTRY_CREATE));
                     LOG.info("registering new path: {}\n", dir);
 
                 } else {
                     if (!dir.equals(prev)) {
-                        listener.onAction(new FileHandlerImpl(dir, Type.ENTRY_MODIFY));
+                        listener.onAction(new PathContext(dir, Type.ENTRY_MODIFY));
                         LOG.info("update: {} to  {}\n", prev, dir);
                     }
                 }
@@ -101,7 +102,7 @@ public class DirectoryRegistration {
 
 
     public void removeKey(WatchKey key) {
-        listener.onAction(new FileHandlerImpl(keys.get(key), Type.ENTRY_DELETE));
+        listener.onAction(new PathContext(keys.get(key), Type.ENTRY_DELETE));
         keys.remove(key);
 
     }

@@ -12,7 +12,6 @@ class NodeImpl implements Node<String> {
     private String path;
 
     /**
-     * E
      *
      * @param path  Meaningful path/name
      * @param nodes not null nodes vararg list
@@ -31,12 +30,9 @@ class NodeImpl implements Node<String> {
     }
 
     NodeImpl(String path, Node<String> leaf) {
-        this.path=path;
+        this.path = path;
         this.nodes = Arrays.asList(leaf);
     }
-
-
-
 
     @Override
     public Iterable<Node<String>> getChildren() {
@@ -46,11 +42,6 @@ class NodeImpl implements Node<String> {
     @Override
     public String getData() {
         return path;
-    }
-
-    @Override
-    public Type getType() {
-        return null;
     }
 
     @Override

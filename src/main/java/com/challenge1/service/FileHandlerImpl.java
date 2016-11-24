@@ -18,17 +18,11 @@ import java.util.List;
 public class FileHandlerImpl implements Node<Path> {
     private Logger LOG = LoggerFactory.getLogger(this.getClass());
     private Path path;
-    private Type type;
 
     private Iterator<Node<Path>> iterator = Collections.emptyIterator();
 
     public FileHandlerImpl(Path path) {
         this.path = path;
-    }
-
-    public FileHandlerImpl(Path path, Type type) {
-        this.path = path;
-        this.type = type;
     }
 
     public Iterator<Node<Path>> iterator() {
@@ -59,8 +53,5 @@ public class FileHandlerImpl implements Node<Path> {
         return path;
     }
 
-    @Override
-    public Type getType() {
-        return type;
-    }
+
 }

@@ -14,9 +14,10 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 
-public class StructureWatcher implements Runnable {
+public class StructureWatcher {
     private static final Logger LOG = LoggerFactory.getLogger(StructureWatcher.class);
     private final DirectoryRegistration directoryRegistration;
+
     @SuppressWarnings("unchecked")
     static <T> WatchEvent<T> cast(WatchEvent<?> event) {
         return (WatchEvent<T>) event;
@@ -40,7 +41,7 @@ public class StructureWatcher implements Runnable {
 
             Path dir = directoryRegistration.getKeys().get(key);
             if (dir == null) {
-             LOG.warn("WatchKey not recognized while processing events!!");
+                LOG.warn("WatchKey not recognized while processing events!!");
                 continue;
             }
 
@@ -65,7 +66,7 @@ public class StructureWatcher implements Runnable {
                         directoryRegistration.registerAll(child);
                     }
                 }
-                if(kind == ENTRY_DELETE){
+                if (kind == ENTRY_DELETE) {
                     directoryRegistration.removeKey(key);
                 }
             }
@@ -83,9 +84,5 @@ public class StructureWatcher implements Runnable {
         }
     }
 
-    @Override
-    public void run() {
-        processEvents();
-    }
 }
 

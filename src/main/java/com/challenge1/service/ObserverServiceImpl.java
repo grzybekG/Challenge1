@@ -2,6 +2,7 @@ package com.challenge1.service;
 
 import com.challenge1.service.api.Node;
 import com.challenge1.service.api.ObservableService;
+import com.challenge1.service.api.Type;
 import com.challenge1.service.watcher.DirectoryRegistration;
 import com.challenge1.service.watcher.StructureWatcher;
 import com.challenge1.service.watcher.WatchServiceFactory;
@@ -24,21 +25,20 @@ public class ObserverServiceImpl implements ObservableService {
     }
 
     @Override
-    public Observable<Node<?>> getObservableForPath(Path path) {
-        return Observable.from(nodeLogic.getNodeIterator(new FileHandlerImpl(path)));
+    public Observable<PathContext> getObservableForPath(Path path) {
+        return Observable.from(nodeLogic.getNodeIterator(new FileHandlerImpl(path))).map(pathNode -> new PathContext(pathNode.getData(), Type.NEW_ENTRY));
     }
 
     @Override
-    public Observable<Node<?>> getDirectoryWatcherObservable(Path path) {
+    public Observable<PathContext> getDirectoryWatcherObservable(Path path) {
         return Observable.create(subscriber -> {
-            DirectoryRegistration directoryRegistration = new DirectoryRegistration(WatchServiceFactory.getWatchService(), nodeLogic, node -> {
-                LOG.info("Node from observer listener emitted. For Path [{}] of Type [{}]", node.getData().toString(), node.getType());
-                subscriber.onNext(node);
+            DirectoryRegistration directoryRegistration = new DirectoryRegistration(WatchServiceFactory.getWatchService(), nodeLogic, context -> {
+                LOG.info("Node from observer listener emitted. For Path [{}] of Type [{}]", context.getPath(), context.getType());
+                subscriber.onNext(context);
             });
             directoryRegistration.init(path);
-            StructureWatcher watcher = new StructureWatcher(directoryRegistration);
-            Thread t = new Thread(watcher);
-            t.start();
+            final StructureWatcher watcher = new StructureWatcher(directoryRegistration);
+            watcher.processEvents();
         });
     }
 }

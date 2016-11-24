@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import rx.Observable;
 import rx.observers.TestSubscriber;
+import rx.schedulers.Schedulers;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,20 +59,20 @@ public class ObserverServiceImplTest {
     @Test
     public void shouldCreateNotNullObservableFoeExistingPath() throws Exception {
         ReflectionTestUtils.setField(observerService, "nodeLogic", nodeLogic);
-        Observable<Node<?>> observableForPath = observerService.getObservableForPath(Paths.get(parentFolder.toURI()));
+        Observable<PathContext> observableForPath = observerService.getObservableForPath(Paths.get(parentFolder.toURI()));
         Assert.assertThat(observableForPath, is(notNullValue()));
     }
 
     @Test
     public void shouldCreateNotNullObservableFoeNonExistingPath() throws Exception {
-        Observable<Node<?>> observableForPath = observerService.getObservableForPath(null);
+        Observable<PathContext> observableForPath = observerService.getObservableForPath(null);
         Assert.assertThat(observableForPath, is(notNullValue()));
     }
 
     @Test
     public void shouldCreateObservableFormPath() throws Exception {
-        Observable<Node<?>> observableForPath = observerService.getObservableForPath(Paths.get(parentFolder.toURI()));
-        List<Node<?>> result = new ArrayList<>();
+        Observable<PathContext> observableForPath = observerService.getObservableForPath(Paths.get(parentFolder.toURI()));
+        List<PathContext> result = new ArrayList<>();
         observableForPath.subscribe(node -> result.add(node));
 
         Assert.assertThat(result.size(), is(7));
@@ -80,42 +81,40 @@ public class ObserverServiceImplTest {
     @Test //
     public void integrationTestSimpleFolderChange() throws Exception {
         //given
-        Observable<Node<?>> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
+        Observable<PathContext> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
 
-        TestSubscriber<Node<?>> testSubscriber = new TestSubscriber();
-        testSubscriber.getOnNextEvents();
-        directoryWatcherObservable.subscribe(testSubscriber);
-
+        TestSubscriber<PathContext> testSubscriber = new TestSubscriber();
+        directoryWatcherObservable.subscribeOn(Schedulers.io()).subscribe(testSubscriber);
+        Thread.sleep(500l);
         Files.createDirectory(Paths.get(path + "/test1"));
         Files.createDirectory(Paths.get(path + "/test2"));
 
-        delay(500l);
         //then
-        List<Node<?>> emittedEvents = testSubscriber.getOnNextEvents();
+        List<PathContext> emittedEvents = testSubscriber.getOnNextEvents();
 
 
-        testSubscriber.awaitTerminalEventAndUnsubscribeOnTimeout(500l, TimeUnit.MICROSECONDS);
+        testSubscriber.awaitTerminalEventAndUnsubscribeOnTimeout(5500l, TimeUnit.MICROSECONDS);
         Assert.assertThat(emittedEvents.size(), is(2));
-        for (Node<?> node : emittedEvents) {
-            Assert.assertThat(node.getType(), is(Type.ENTRY_CREATE));
+        for (PathContext context : emittedEvents) {
+            Assert.assertThat(context.getType(), is(Type.ENTRY_CREATE));
         }
     }
 
     @Test
     public void integrationTestNestedFolders() throws Exception {
         //given
-
-        Observable<Node<?>> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
-        TestSubscriber<Node<?>> testSubscriber = new TestSubscriber<>();
+        Observable<PathContext> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
+        TestSubscriber<PathContext> testSubscriber = new TestSubscriber<>();
         //when
-        directoryWatcherObservable.subscribe(testSubscriber);
+        directoryWatcherObservable.subscribeOn(Schedulers.io()).subscribe(testSubscriber);
+        Thread.sleep(500l);
         Files.createDirectory(Paths.get(path + "/test1"));
         Files.createDirectory(Paths.get(path + "/test1/nestedDir"));
 
         ///then
-        delay(500l);
+        Thread.sleep(200l);
 
-        List<Node<?>> emittedEvents = testSubscriber.getOnNextEvents();
+        List<PathContext> emittedEvents = testSubscriber.getOnNextEvents();
         testSubscriber.assertNoErrors();
 
 
@@ -127,19 +126,21 @@ public class ObserverServiceImplTest {
     @Test
     public void integrationShouldWatchDeletingFolder() throws Exception {
         //given
-        Observable<Node<?>> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
-        TestSubscriber<Node<?>> testSubscriber = new TestSubscriber<>();
+        Observable<PathContext> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
+        TestSubscriber<PathContext> testSubscriber = new TestSubscriber<>();
         //when
-        directoryWatcherObservable.subscribe(testSubscriber);
+        directoryWatcherObservable.subscribeOn(Schedulers.io()).subscribe(testSubscriber);
+        Thread.sleep(200l);
         Files.createDirectory(Paths.get(path + "/test1"));
         Files.createDirectory(Paths.get(path + "/test1/nestedDir"));
         Files.createDirectory(Paths.get(path + "/test1/nestedDir/nestedMore"));
-        delay(500l);
 
+
+        Thread.sleep(200l);
         FileUtils.forceDelete(new File(path + "/test1/nestedDir/nestedMore"));
-        delay(500l);
+        Thread.sleep(200l);
         ///then
-        List<Node<?>> emittedEvents = testSubscriber.getOnNextEvents();
+        List<PathContext> emittedEvents = testSubscriber.getOnNextEvents();
         testSubscriber.assertNoErrors();
 
         Assert.assertThat(emittedEvents.size(), is(4));
@@ -148,55 +149,56 @@ public class ObserverServiceImplTest {
         Assert.assertThat(emittedEvents.get(1).getType(), is(Type.ENTRY_CREATE));
         Assert.assertThat(emittedEvents.get(2).getType(), is(Type.ENTRY_CREATE));
         Assert.assertThat(emittedEvents.get(3).getType(), is(Type.ENTRY_DELETE));
+        //cleanup
 
     }
 
     @Test
     public void shouldTrackModified() throws Exception {
         //given
-
-        Observable<Node<?>> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
-        TestSubscriber<Node<?>> testSubscriber = new TestSubscriber<>();
+        Observable<PathContext> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
+        TestSubscriber<PathContext> testSubscriber = new TestSubscriber<>();
         //when
-        directoryWatcherObservable.subscribe(testSubscriber);
+        directoryWatcherObservable.subscribeOn(Schedulers.io()).subscribe(testSubscriber);
+
+        Thread.sleep(1000l);
         Files.createDirectory(Paths.get(path + "/test1"));
         Files.createDirectory(Paths.get(path + "/test2"));
-        delay(500l);
         Files.move(Paths.get(path + "/test1"), Paths.get(path + "/test2/test1"), StandardCopyOption.REPLACE_EXISTING);
-        delay(500l);
+        Thread.sleep(200l);
         ///then
-        List<Node<?>> emittedEvents = testSubscriber.getOnNextEvents();
+        List<PathContext> emittedEvents = testSubscriber.getOnNextEvents();
         testSubscriber.assertNoErrors();
 
         Assert.assertThat(emittedEvents.size(), is(4));
 
         Assert.assertThat(emittedEvents.get(0).getType(), is(Type.ENTRY_CREATE));
         Assert.assertThat(emittedEvents.get(1).getType(), is(Type.ENTRY_CREATE));
-        Assert.assertThat(emittedEvents.get(2).getType(), is(Type.ENTRY_DELETE));
-        Assert.assertThat(emittedEvents.get(3).getType(), is(Type.ENTRY_MODIFY));
+        Assert.assertThat(emittedEvents.get(2).getType(), is(Type.ENTRY_MODIFY));
+        Assert.assertThat(emittedEvents.get(3).getType(), is(Type.ENTRY_DELETE));
     }
+
     @Test
     public void multipleSubscriptions() throws Exception {
         //given
-
-        Observable<Node<?>> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
-        TestSubscriber<Node<?>> testSubscriber = new TestSubscriber<>();
-        TestSubscriber<Node<?>> firstSubscriber = testSubscriber.create();
-        TestSubscriber<Node<?>> secondSubscriber = testSubscriber.create();
+        Observable<PathContext> directoryWatcherObservable = observerService.getDirectoryWatcherObservable(Paths.get(parentFolder.toURI()));
+        TestSubscriber<PathContext> testSubscriber = new TestSubscriber<>();
+        TestSubscriber<PathContext> firstSubscriber = testSubscriber.create();
+        TestSubscriber<PathContext> secondSubscriber = testSubscriber.create();
 
         //when
-        directoryWatcherObservable.subscribe(firstSubscriber);
-        directoryWatcherObservable.subscribe(secondSubscriber);
+        directoryWatcherObservable.subscribeOn(Schedulers.io()).subscribe(firstSubscriber);
+        directoryWatcherObservable.subscribeOn(Schedulers.io()).subscribe(secondSubscriber);
+        Thread.sleep(500l);
         Files.createDirectory(Paths.get(path + "/test1"));
         Files.createDirectory(Paths.get(path + "/test2"));
-
-        delay(500l);
+        Thread.sleep(500l);
         Files.move(Paths.get(path + "/test1"), Paths.get(path + "/test2/test1"), StandardCopyOption.REPLACE_EXISTING);
-        delay(500l);
+        Thread.sleep(500l);
 
         ///then
-        List<Node<?>> firstSubscriberOnNextEvents = firstSubscriber.getOnNextEvents();
-        List<Node<?>> secondSubscriberOnNextEvents = secondSubscriber.getOnNextEvents();
+        List<PathContext> firstSubscriberOnNextEvents = firstSubscriber.getOnNextEvents();
+        List<PathContext> secondSubscriberOnNextEvents = secondSubscriber.getOnNextEvents();
         firstSubscriber.assertNoErrors();
         secondSubscriber.assertNoErrors();
 
@@ -207,16 +209,6 @@ public class ObserverServiceImplTest {
         Assert.assertThat(firstSubscriberOnNextEvents.get(1).getType(), is(Type.ENTRY_CREATE));
         Assert.assertThat(firstSubscriberOnNextEvents.get(2).getType(), is(Type.ENTRY_DELETE));
         Assert.assertThat(firstSubscriberOnNextEvents.get(3).getType(), is(Type.ENTRY_MODIFY));
-    }
-
-
-
-
-
-
-
-    private synchronized void delay(long l) throws InterruptedException {
-        wait(l);
     }
 
 
